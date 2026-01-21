@@ -1,0 +1,1 @@
+print("Salut de pe Ubuntu Server!")

@@ -1,4 +1,5 @@
-# Sistem de Management și Interceptare a Traficului de Rețea
+# CuciSec
+## Sistem de Management și Interceptare a Traficului de Rețea
 
 Acest proiect reprezintă o lucrare de licență ce vizează dezvoltarea unui firewall software capabil să intercepteze pachete direct din Kernel-ul Linux, să le analizeze logic în Userspace folosind Python și să ofere o interfață web pentru administrare vizuală.
 

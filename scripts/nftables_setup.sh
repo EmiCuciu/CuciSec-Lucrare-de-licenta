@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Delete previous rules
+
+iptables -F
+
+iptables -X
+
 nft flush ruleset
 
 # main table

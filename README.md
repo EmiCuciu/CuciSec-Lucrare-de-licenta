@@ -108,84 +108,35 @@ Aceasta arată logica exactă pe care o vei programa în scriptul tău Python.
 
 ```mermaid
 flowchart TD
-    Start([Pachet nou intră în interfață]) --> Iptables{Regulă iptables}
-    Iptables -- "Nu ne interesează" --> KernelAccept[Kernel: ACCEPT direct]
-    Iptables -- "Trafic de interceptat" --> Queue[Trimite în NFQUEUE]
-    
-    Queue --> Python[Script Python preia pachetul]
-    Python --> Parse[Scapy: Extrage IP, Port, Payload]
-    
-    Parse --> CheckBlacklist{IP-ul e în Blacklist?}
-    CheckBlacklist -- DA --> Drop([Verdict: DROP])
-    CheckBlacklist -- NU --> CheckHoneyport{Trafic spre Honeyport?}
-    
-    CheckHoneyport -- DA --> AddBlacklist[Adaugă IP în SQLite Blacklist]
-    AddBlacklist --> Drop
-    CheckHoneyport -- NU --> CheckIPS{Frecvență prea mare? IPS}
-    
-    CheckIPS -- DA --> BlockTemp[Blocare temporară IP]
-    BlockTemp --> Drop
-    CheckIPS -- NU --> CheckDPI{Payload periculos? DPI}
-    
-    CheckDPI -- DA --> Drop
-    CheckDPI -- NU --> Accept([Verdict: ACCEPT])
-    
-    Drop --> Log[Salvează eveniment în SQLite]
-    Accept --> Log
-```
-
-
-2. Arhitectura Sistemului (Component Diagram)
-Arată cum comunică modulele între ele.
-
-```mermaid
-graph LR
-    subgraph Kernel Space
-        NIC[Placă de rețea] <--> IPT[iptables / nftables]
-    end
-
-    subgraph Userspace Logic
-        NFQ[NetfilterQueue] <--> Engine[Python Core Engine]
-        Engine <--> Scapy[Modul Scapy DPI]
-    end
-
-    subgraph Persistență & Web UI
-        DB[(SQLite Database)]
-        API[FastAPI Backend]
-        UI[Frontend HTML/Chart.js]
-    end
-
-    IPT -- Pachete --> NFQ
-    Engine -- Scrie Log-uri/Reguli --> DB
-    API -- Citește/Scrie --> DB
-    UI -- REST/WebSockets --> API
-```
-
-
-3. UML Use Case Diagram
-Aceasta arată ce pot face actorii implicați în sistem (Administratorul vs. Atacatorul).
-
-```plantuml
-@startuml UseCase_Diagram
-    :Administrator: as Admin
-    :Atacator: as Attacker
-    
-    (Vizualizare Dashboard) as UC1
-    (Adăugare/Ștergere Reguli) as UC2
-    (Analiză Trafic Real-time) as UC3
-    (Declanșare Honeyport) as UC4
-    (Declanșare IPS Flood) as UC5
-    (Auto-Blocare IP) as UC6
-    
-    Admin --> UC1
-    Admin --> UC2
-    Admin --> UC3
-    Attacker --> UC4
-    Attacker --> UC5
-    
-    UC4 --> UC6 : declanșează
-    UC5 --> UC6 : declanșează
-@enduml
+    A([Packet arrives from Network])
+    B[Linux Kernel Netfilter]
+    C[nftables / iptables rule]
+    D[NFQUEUE Queue]
+    E[Python Packet Engine]
+    F[Scapy Packet Analyzer]
+    G{Security Filters}
+    H[Verdict: ACCEPT]
+    I[Verdict: DROP]
+    J[(SQLite Logs)]
+    K[FastAPI Backend]
+    L[Web Dashboard]
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G -->|Blacklist| I
+    G -->|Flood Detection| I
+    G -->|Honeyport| I
+    G -->|Custom Rules| I
+    G -->|Allowed| H
+    H --> B
+    I --> B
+    H -. log .-> J
+    I -. log .-> J
+    J --> K
+    K --> L
 ```
 
 

@@ -13,6 +13,13 @@ nft add table inet cucisec
 # blacklist set   ->  every ip address from IPS logic from userspace will be automatically denied by network interface card (placa de retea)
 nft add set inet cucisec blacklist { type ipv4_addr\; timeout 24h\; }
 
+
+
+# input hook = strict traficul care se opreste pe VM, in plus VM are un NAT care izoleaza ca sa aiba doar trafic intern
+
+# ar trebui pus pe hook    forward ca sa simuleze real-life
+# dar pentru teste lasam doar input momentan
+
 # input hook chain, maxim priority - then moved to netfilterqueue
 nft add chain inet cucisec input { type filter hook input priority 0 \; }
 

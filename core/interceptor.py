@@ -1,6 +1,7 @@
 from netfilterqueue import NetfilterQueue
 
-from analyzer import PacketAnalyzer
+from core.analyzer import PacketAnalyzer
+from core.actions import FirewallActions
 
 
 class PacketInterceptor:
@@ -13,6 +14,7 @@ class PacketInterceptor:
         self.nfqueue = NetfilterQueue()
         self.is_running = False
         self.analyzer = PacketAnalyzer()
+        self.actions = FirewallActions()
 
     def _process_packet(self, packet):
         """
@@ -35,9 +37,18 @@ class PacketInterceptor:
             if packet_data["payload"]:
                 print(f"Payload: {packet_data['payload']} ...")
 
-        # mock verdict -> ACCEPT , pentru a nu bloca reteaua in timpul testului
-        packet.accept()
+            # TODO : deocamdata dam ACCEPT la tot, se scrie si in db
+            self.actions.accept_packet(packet, packet_data, "DEFAULT TEST")
+        else:
+            print("Malformed packet or non IP header detected, instant DROP")
 
+            bad_packet_data = {
+                "ip_src": "MALFORMED",
+                "ip_dst": "MALFORMED",
+                "protocol": "UNKNOWN"
+            }
+
+            self.actions.drop_packet(packet,bad_packet_data, "BAD PACKET: MALFORMED OR NON-IP")
 
     def start(self):
         """

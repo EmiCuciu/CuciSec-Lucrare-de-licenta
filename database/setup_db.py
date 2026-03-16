@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_NAME = "CuciSec.db"
+DB_NAME = "database/CuciSec.db"
 
 
 def init_db():

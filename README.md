@@ -15,27 +15,103 @@ Dezvoltarea unei soluții care depășește limitările firewall-urilor statice,
 
 Sistemul este structurat pe patru niveluri fundamentale:
 
-* **Nivelul Rețea (Kernel):** Bazat pe `Ubuntu Server` (cu potențial de portare pe OpenWrt/Raspberry Pi), utilizează mecanismele `iptables/nftables` și `NFQUEUE` pentru extragerea pachetelor din fluxul standard al sistemului.
+###   * **Nivelul Rețea (Kernel):**
 
-* **Nivelul Logic (Core Engine):** Implementat în `Python 3`, utilizează librăria `Scapy` pentru analiza detaliată și `NetfilterQueue` pentru procesarea pachetelor și emiterea verdictului de tip `ACCEPT` sau `DROP`.
+Bazat pe `Ubuntu Server` (cu potențial de portare pe OpenWrt/Raspberry Pi), utilizează `nftables` (pe lantul'forward')
+pentru routarea retelei și `NFQUEUE` pentru extragerea pachetelor din fluxul standard al sistemului.
 
-* **Nivelul Date:** Utilizarea `SQLite` pentru stocarea eficientă a log-urilor de trafic și a regulilor de filtrare.
+###   * **Nivelul Logic (Core Engine):**
 
-* **Nivelul Interfață (Web UI):** Backend dezvoltat în `Flask` (REST API) și frontend realizat cu `HTML5`, `Bootstrap` și `Chart.js` pentru monitorizare grafică.
+Implementat în `Python 3`, utilizează librăria `Scapy` pentru analiza detaliată și `NetfilterQueue` pentru procesarea
+pachetelor și emiterea verdictului de tip `ACCEPT` sau `DROP`.
+
+###   * **Nivelul Date:**
+
+Utilizarea `SQLite` pentru stocarea eficientă a log-urilor de trafic și a regulilor de filtrare.
+
+###   * **Nivelul Interfață (Web UI):**
+
+Backend dezvoltat în `FastAPI` și frontend realizat cu `HTML5`, `Bootstrap` și `Chart.js` pentru monitorizare grafică.
 
 ---
 
 ## Diagramă de Funcționare
 
 ```mermaid
-graph TD;
-    A[Internet/Rețea] -->|Pachet| B(Linux Kernel / iptables);
-    B -->|NFQUEUE| C{Interceptor Python};
-    C -->|Analiză cu Scapy| D[Motor de Decizie];
-    D -->|Logare| E[(Bază de Date SQLite)];
-    D -->|Verdict: ACCEPT/DROP| B;
-    F[Dashboard Web] <-->|REST API| G[Backend Flask];
-    G <-->|Interogare/Actualizare| E;
+flowchart TD
+%% 1. Rețeaua Fizică
+    subgraph Network [Rețea Fizică]
+        P_IN([Pachet Intră - LAN / WAN])
+        P_OUT([Pachet Iese spre Destinație, Post routing])
+    end
+
+%% 2. Kernel Space
+    subgraph Kernel [Kernel Space - Data Plane]
+        NAT[PREROUTING: NAT / DNAT \nPort Forwarding]
+        FWD[FORWARD Hook: nftables]
+        BL{Set O1: blacklist}
+        DROP_K[DROP Nativ]
+        NFQ[NFQUEUE num 1]
+        NL[[nfnetlink: Notificări Asincrone]]
+    end
+
+%% 3. User Space (Python)
+    subgraph UserSpace [User Space - Python Control Plane]
+        PI[Packet Interceptor]
+        SC[Scapy: Decapsulare L3 - L7]
+
+        subgraph SecFilters [Motor de Securitate Secvențial]
+            RE{1. Rule Engine In-Memory\nZone, IP, Port}
+            IPS{2. IPS Engine\nFlood & Rate Limit}
+            HP{3. Honeyport\nCapcană Porturi}
+            DPI{4. DPI Engine\nAnaliză Payload SQLi/XSS}
+        end
+
+        ACT_A[Verdict: ACCEPT]
+        ACT_D[Verdict: DROP & Ban IP]
+        AW((Async Logging Worker))
+    end
+
+%% 4. Bază de date & Web
+    subgraph DB_Web [Persistență & Interfață Web]
+        SQL[(SQLite Database)]
+        API[FastAPI Backend]
+        UI[Dashboard Web / Chart.js]
+    end
+
+%% Flow-ul principal
+    P_IN --> NAT --> FWD
+    FWD --> BL
+    BL -->|Adresă Blocată| DROP_K
+    BL -->|Adresă Necunoscută / Permisă| NFQ
+    NFQ --> PI
+    PI --> SC --> RE
+%% Logica de decizie
+    RE -->|Match DROP| ACT_D
+    RE -->|Match ACCEPT| ACT_A
+    RE -->|Nicio Regulă| IPS
+    IPS -->|Flood Detectat| ACT_D
+    IPS -->|Trafic Normal| HP
+    HP -->|Atinge Port Fals| ACT_D
+    HP -->|Port Curat| DPI
+    DPI -->|Semnătură Malițioasă| ACT_D
+    DPI -->|Payload Curat| ACT_A
+%% Verdict spre Kernel
+    ACT_A -->|Returnează pachet| FWD_OUT(Trimitere în Rețea)
+    FWD_OUT --> P_OUT
+    ACT_D -. Injectare atomică IP .-> BL
+    ACT_D -. Emite event .-> NL
+%% Logare Asincronă
+    ACT_A -. Trimite metadate .-> AW
+    ACT_D -. Trimite metadate .-> AW
+    AW -. Scriere non - blocantă .-> SQL
+%% API
+    SQL <--> API <--> UI
+%% Stilizare
+    style DROP_K fill: #ff4d4d, stroke: #333, stroke-width: 2px, color: white
+    style ACT_D fill: #ff4d4d, stroke: #333, stroke-width: 2px, color: white
+    style ACT_A fill: #4CAF50, stroke: #333, stroke-width: 2px, color: white
+    style AW fill: #ffcc00, stroke: #333, stroke-width: 2px, color: black
 ```
 
 ---
@@ -100,43 +176,3 @@ Validarea sistemului a fost realizată într-un mediu virtualizat (VirtualBox) c
 
 
 ## Diagrame:
-
-1. Flow-ul Pachetului (Activity Diagram)
-
-Aceasta arată logica exactă pe care o vei programa în scriptul tău Python.
-
-
-```mermaid
-flowchart TD
-    A([Packet arrives from Network])
-    B[Linux Kernel Netfilter]
-    C[nftables / iptables rule]
-    D[NFQUEUE Queue]
-    E[Python Packet Engine]
-    F[Scapy Packet Analyzer]
-    G{Security Filters}
-    H[Verdict: ACCEPT]
-    I[Verdict: DROP]
-    J[(SQLite Logs)]
-    K[FastAPI Backend]
-    L[Web Dashboard]
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    G -->|Blacklist| I
-    G -->|Flood Detection| I
-    G -->|Honeyport| I
-    G -->|Custom Rules| I
-    G -->|Allowed| H
-    H --> B
-    I --> B
-    H -. log .-> J
-    I -. log .-> J
-    J --> K
-    K --> L
-```
-
-

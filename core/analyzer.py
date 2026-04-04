@@ -1,4 +1,5 @@
 from scapy.layers.inet import IP, TCP, UDP, ICMP
+from scapy.layers.inet6 import IPv6, ICMPv6EchoRequest, ICMPv6EchoReply
 from scapy.packet import Raw
 
 
@@ -16,15 +17,33 @@ class PacketAnalyzer:
         :return: None : if packet doesn't have IP layer
         """
 
-        packet = IP(raw_payload)
+        try:
+            # Verify ip version reading first 4 bits
+            version = raw_payload[0] >> 4
 
-        if not packet.haslayer(IP):
+            if version == 4:
+                packet = IP(raw_payload)
+                ip_layer = IP
+
+            elif version == 6:
+                packet = IPv6(raw_payload)
+                ip_layer = IPv6
+
+            else:
+                return None
+
+            if not packet.haslayer(ip_layer):
+                return None
+
+        except Exception as e:
+            print(f"Analyzer Error: {e}")
             return None
+
 
         # Extract basic metadata ( Layer 3 )
         packet_info = {
-            "ip_src": packet[IP].src,
-            "ip_dst": packet[IP].dst,
+            "ip_src": packet[ip_layer].src,
+            "ip_dst": packet[ip_layer].dst,
             "protocol": "UNKNOWN",
             "port_src": None,
             "port_dst": None,
@@ -49,6 +68,17 @@ class PacketAnalyzer:
             packet_info["protocol"] = "ICMP"
             packet_info["port_dst"] = packet[ICMP].type
 
+        elif ip_layer == IPv6 and packet[IPv6].nh == 58:
+            # Protocol 58 in IPv6 means ICMPv6
+            packet_info["protocol"] = "ICMPv6"
+
+            if packet.haslayer(ICMPv6EchoRequest):
+                packet_info["port_dst"] = 128
+
+            elif packet.haslayer(ICMPv6EchoReply):
+                packet_info["port_dst"] = 129
+
+
         # Extract the payload for DPI  ( Layer 7 )
         if packet.haslayer(Raw):
             raw_data = packet[Raw].load
@@ -57,8 +87,9 @@ class PacketAnalyzer:
                 # try to make readable text ( for SQLI and XSS atacks )
                 packet_info["payload"] = raw_data.decode('utf-8', errors='ignore')
 
-            except Exception:
+            except Exception as e:
                 # if it is binary format, keep it as string representation of bytes (file transfer, malware, etc.)
                 packet_info["payload"] = str(raw_data)
+                print(f"{e}")
 
         return packet_info

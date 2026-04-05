@@ -6,21 +6,15 @@ nft flush ruleset
 # main table
 nft add table inet cucisec
 
-
-
-
 # blacklist set   ->  every ip_v4 and ip_v6 addresses from IPS logic from userspace will be automatically denied by network interface card (placa de retea)
 # persists 24h
 nft add set inet cucisec blacklist_v4 { type ipv4_addr\; timeout 24h\; }
 nft add set inet cucisec blacklist_v6 { type ipv6_addr\; timeout 24h\; }
 
 
-
-
 # dynamic sets  -> for flood trafic per ip, adds ip into set dynamic
 nft add set inet cucisec flood_tracking_v4 { type ipv4_addr \; flags dynamic \; timeout 1m \; }
 nft add set inet cucisec flood_tracking_v6 { type ipv6_addr \; flags dynamic \; timeout 1m \; }
-
 
 
 
@@ -35,12 +29,14 @@ nft add chain inet cucisec input { type filter hook input priority 0 \; policy a
 
 
 # allow loopback
-#nft add rule inet cucisec input iif lo accept
+nft add rule inet cucisec input iif lo accept
 
 # allow ssh for local machine
 nft add rule inet cucisec input tcp dport 22 accept
 
 
+# for malformed/invalid packets
+nft add rule inet cucisec input ct state invalid counter drop
 
 
 
@@ -73,18 +69,15 @@ nft add rule inet cucisec input ip6 nexthdr udp ip6 saddr != :: update @flood_tr
 
 ##########################################################
 
-
-
-
-
-
-# rule 2: send rest of packets to NFQUEUE nr. 1
-# TODO #### Do not forget to change ONLY PING PACKETS (ICMP)
-
-nft add rule inet cucisec input ip protocol icmp counter queue num 1
-nft add rule inet cucisec input ip6 nexthdr icmpv6 counter queue num 1
-
 # HoneyPorts
-nft add rule inet cucisec input tcp dport { 23, 2323, 3389, 4444, 9999 } counter queue num 1
+nft add rule inet cucisec input tcp dport { \
+  23, 2323, 3389, 4444, 9999 \
+   } counter queue num 1
 
-echo "end of script"
+
+# send rest of packets to NFQUEUE nr. 1
+
+nft add rule inet cucisec input counter queue num 1
+
+
+echo "CuciSec nftables initialized - script ended"

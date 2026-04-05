@@ -43,8 +43,9 @@ class PacketInterceptor:
 
         # show what is in packet_data
         if packet_data:
-            print(f"\nPacket: Protocol: {packet_data['protocol']} | IP_SRC: {packet_data['ip_src']} : PORT_SRC: {packet_data['port_src']} | "
-                  f"IP_DST: {packet_data['ip_dst']} : PORT_DST: {packet_data['port_dst']}")
+            print(f"\nPacket: Protocol: {packet_data['protocol']} "
+                  f"| IP_SRC: {packet_data['ip_src']} : PORT_SRC: {packet_data['port_src']} "
+                  f"| IP_DST: {packet_data['ip_dst']} : PORT_DST: {packet_data['port_dst']}")
 
             if packet_data["payload"]:
                 print(f"Payload: {packet_data['payload']} ...")
@@ -112,9 +113,9 @@ class PacketInterceptor:
 
         try:
 
-            self.nfqueue.bind(self.queue_num, self._process_packet)
+            self.nfqueue.bind(self.queue_num, self._process_packet, max_len=8192)
             self.is_running = True
-            print(f"\nPacket Interceptor starts. Listen on NFQUEUE {self.queue_num} .. ")
+            print(f"\nPacket Interceptor starts. Listen on NFQUEUE {self.queue_num} (max 8192 packets) .. ")
 
             self.nfqueue.run()  # blocking call, will keep the interceptor running until interrupted
 

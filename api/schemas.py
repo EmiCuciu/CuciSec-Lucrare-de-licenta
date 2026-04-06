@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, field_validator, ConfigDict
 
@@ -96,6 +96,7 @@ class StatsResponse(BaseModel):
     accepted: int
     dropped: int
     banned_ips: int
-    flood_counters: dict   # date brute din nft -j list ruleset
+    flood_counters: dict   # brute data from nft -j list ruleset
+    recent_bans: List[dict] = []  # last 5 banned ips with timestamp
 
     model_config = ConfigDict(from_attributes=True)

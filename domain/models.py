@@ -54,3 +54,12 @@ class BlacklistEntry:
     reason: str
     id: Optional[int] = None
     timestamp: Optional[str] = None
+
+@dataclass
+class FloodEvent:
+    ip: str
+    protocol: str
+    packet_count: int
+    time_window: float
+    reason: str
+    timestamp: float

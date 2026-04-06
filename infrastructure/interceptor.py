@@ -5,6 +5,7 @@ from loguru import logger
 from netfilterqueue import NetfilterQueue
 
 from detectors.dpi import DPIEngine
+from detectors.flood import FloodEngine
 from detectors.honeyport import HoneyportEngine
 from domain.models import PacketInfo
 from infrastructure.nftables_manager import NftablesManager
@@ -29,6 +30,7 @@ class PacketInterceptor:
         self.rule_engine = RuleEngine()
         self.dpi = DPIEngine()
         self.honeyport = HoneyportEngine(Config.HONEY_PORTS)
+        self.flood = FloodEngine()
 
         # Shutdown signal
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -68,6 +70,14 @@ class PacketInterceptor:
         logger.info(f"[PACKET] {packet_info.protocol} "
                      f"{packet_info.ip_src}:{packet_info.port_src} -> "
                      f"{packet_info.ip_dst}:{packet_info.port_dst}")
+
+
+        flood_alert = self.flood.inspect(packet_info)
+        if flood_alert:
+            logger.warning("[INTERCEPTOR] DROP & BAN: FLOOD")
+            self.actions.drop_packet(packet, packet_info, f"FLOOD_BAN_DROP: {flood_alert}")
+            self.actions.ban_ip(packet_info.ip_src, reason=flood_alert)
+            return
 
         # Rule Engine
         decision = self.rule_engine.evaluate(packet_info)

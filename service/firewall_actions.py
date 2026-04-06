@@ -45,7 +45,7 @@ class FirewallActions:
         Ban source IP in nftables and logs it into Blacklist table
         :param ip_address: IP address to ban
         :param reason: string with reason for banning the IP
-        :return:
+        :return: None
         """
 
         if ip_address in self._banned_ips:

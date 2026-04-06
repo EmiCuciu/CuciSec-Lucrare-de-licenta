@@ -7,6 +7,7 @@ from netfilterqueue import NetfilterQueue
 from detectors.dpi import DPIEngine
 from detectors.honeyport import HoneyportEngine
 from domain.models import PacketInfo
+from infrastructure.nftables_manager import NftablesManager
 from service.firewall_actions import FirewallActions
 from service.packet_analyzer import PacketAnalyzer
 from service.rule_engine import RuleEngine
@@ -34,7 +35,8 @@ class PacketInterceptor:
         signal.signal(signal.SIGTERM, self._signal_handler)
 
     def _signal_handler(self, signum, frame):
-        logger.info(f"\n[SIGNAL] {signum} received - shutting down")
+        logger.info(f"[SIGNAL] {signum} received - shutting down")
+        logger.trace(f"{frame}")
         self.stop_interceptor()
         sys.exit(0)
 
@@ -63,7 +65,7 @@ class PacketInterceptor:
             logger.warning("[INTERCEPTOR] Malformed packet or non IP header detected, instant DROP")
             return
 
-        logger.debug(f"[PACKET] {packet_info.protocol} "
+        logger.info(f"[PACKET] {packet_info.protocol} "
                      f"{packet_info.ip_src}:{packet_info.port_src} -> "
                      f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
@@ -92,19 +94,19 @@ class PacketInterceptor:
 
         # Rule Engine ACCEPT
         if decision == "ACCEPT":
-            logger.debug("[INTERCEPTOR] ACCEPT: STATIC RULE")
+            logger.info("[INTERCEPTOR] ACCEPT: STATIC RULE")
             self.actions.accept_packet(packet, packet_info, "RULE_ENGINE_ACCEPT")
             return
 
         # Default Policy - DEFAULT ACCEPT
-        logger.debug("[INTERCEPTOR] ACCEPT: DEFAULT_POLICY")
+        logger.info("[INTERCEPTOR] ACCEPT: DEFAULT_POLICY")
         self.actions.accept_packet(packet, packet_info, "DEFAULT_ACCEPT")
 
     def start_interceptor(self):
         """
         Start packet interceptions
         bind NFQUEUE to the callback function that will process each packet
-        :return:
+        :return: None
         """
 
         try:
@@ -123,7 +125,7 @@ class PacketInterceptor:
     def stop_interceptor(self):
        """
        Stops interception and free resources
-       :return:
+       :return: None
        """
 
        if self.is_running:
@@ -132,3 +134,5 @@ class PacketInterceptor:
            self.is_running = False
            self.actions.get_db_writer().stop()
            logger.info("[INTERCEPTOR] Database background worker stopped.")
+
+           NftablesManager.cleanup()

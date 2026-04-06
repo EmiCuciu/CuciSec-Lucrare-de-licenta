@@ -67,6 +67,7 @@ class PacketAnalyzer:
             # type 8 = "echo request"
             # type 0 = "echo reply"
             packet_info.protocol = "ICMP"
+            packet_info.port_src = packet[ICMP].code
             packet_info.port_dst = packet[ICMP].type
 
         elif ip_layer == IPv6 and packet[IPv6].nh == 58:
@@ -74,10 +75,11 @@ class PacketAnalyzer:
             packet_info.protocol = "ICMPv6"
 
             if packet.haslayer(ICMPv6EchoRequest):
-                packet_info.port_dst = 128
-
+                packet_info.port_src = 0  # Code for Echo Request
+                packet_info.port_dst = 128  # Type for Echo Request
             elif packet.haslayer(ICMPv6EchoReply):
-                packet_info.port_dst = 129
+                packet_info.port_src = 0  # Code for Echo Reply
+                packet_info.port_dst = 129  # Type for Echo Reply
 
 
         # Extract the payload for DPI  ( Layer 7 )

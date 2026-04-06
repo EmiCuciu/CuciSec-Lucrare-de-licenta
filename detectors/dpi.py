@@ -27,7 +27,7 @@ class DPIEngine:
     def inspect(self, packet_info: PacketInfo) -> str:
         """
         scans packet payload
-        :param packet_info:
+        :param packet_info: packet metadata
         :return: string with malitious context
         """
         logger.debug("[DPI] - INSPECTING...")

@@ -21,7 +21,7 @@ class NftablesManager:
             subprocess.run(["chmod", "+x", script_path], check=True)
             subprocess.run(["sudo", "bash", script_path], check=True)
         except subprocess.CalledProcessError as e:
-            logger.critical(f"[NftablesManager] Eroare la setup-sctipt: {e}")
+            logger.critical(f"[NftablesManager] Error for setup-script: {e}")
             raise
 
     @staticmethod
@@ -48,9 +48,9 @@ class NftablesManager:
         """
         ___FOR BOOT___
         Batch inserting with lists
-        :param ipv4_list:
-        :param ipv6_list:
-        :return:
+        :param ipv4_list: list of ipv4 addresses to ban
+        :param ipv6_list: list of ipv6 addresses to ban
+        :return: None
         """
         commands = ""
         if ipv4_list:
@@ -78,7 +78,7 @@ class NftablesManager:
     def get_stats() -> dict:
         """
         Read contor from Kernel and format to JSON
-        :return:
+        :return: dictionary with contors in JSON format
         """
         try:
             result = subprocess.run(
@@ -92,3 +92,15 @@ class NftablesManager:
         except Exception as e:
             logger.exception(f"[NftablesManager] get_stats() error: {e}")
             return {}
+
+    @staticmethod
+    def cleanup():
+        """
+        Deletes the cucisec table from Kernel on shutdown
+        This prevents the system from dropping packets when the userspace app dies
+        """
+        try:
+            subprocess.run(["sudo", "nft", "delete", "table", "inet", "cucisec"], check=False, capture_output=True)
+            logger.info("[NftablesManager] Table 'cucisec' deleted. Network restored to normal.")
+        except Exception as e:
+            logger.error(f"[NftablesManager] Cleanup error: {e}")

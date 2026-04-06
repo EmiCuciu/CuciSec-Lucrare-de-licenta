@@ -34,7 +34,7 @@ table inet cucisec {
     type filter hook input priority 0; policy accept;
 
     # allow loopback
-    iif "lo" accept
+#    iif "lo" accept
 
     # allow ssh for local machine
     tcp dport 22 ct state new accept
@@ -46,8 +46,8 @@ table inet cucisec {
 
 
     # instant drop for all ips from blacklist
-    ip saddr @blacklist_v4 counter drop
-    ip6 saddr @blacklist_v6 counter drop
+    ip saddr @blacklist_v4 counter drop comment "blacklist_drop"
+    ip6 saddr @blacklist_v6 counter drop comment "blacklist_drop"
 
 
 
@@ -55,25 +55,25 @@ table inet cucisec {
     # anti-flood / DoS
     #ICMP FLOOD: max 5 packets/sec
     # - burst 10 packets   ->  allow initial 10 packets spike,
-    ip protocol icmp limit rate over 5/second burst 10 packets counter drop
-    ip6 nexthdr icmpv6 limit rate over 5/second burst 10 packets counter drop
+    ip protocol icmp limit rate over 5/second burst 10 packets counter drop comment "icmp_flood"
+    ip6 nexthdr icmpv6 limit rate over 5/second burst 10 packets counter drop comment "icmp_flood"
 
 
     # TCP SYN FLOOD: max 20 new connections/sec per ip
     # tcp flags syn -> only for new connections ,
     # ip saddr != 0.0.0.0 -> ignores malformed packets (zero address)
-    tcp flags syn ip saddr != 0.0.0.0 update @flood_v4 { ip saddr limit rate over 20/second burst 40 packets } counter drop
-    tcp flags syn ip6 saddr != :: update @flood_v6 { ip6 saddr limit rate over 20/second burst 40 packets } counter drop
+    tcp flags syn ip saddr != 0.0.0.0 update @flood_v4 { ip saddr limit rate over 20/second burst 40 packets } counter drop comment "tcp_syn_flood"
+    tcp flags syn ip6 saddr != :: update @flood_v6 { ip6 saddr limit rate over 20/second burst 40 packets } counter drop comment "tcp_syn_flood"
 
 
     # UDP FLOOD: max 200 packets/sec per ip
-    ip protocol udp ip saddr != 0.0.0.0 update @flood_v4 { ip saddr limit rate over 200/second burst 250 packets } counter drop
-    ip6 nexthdr udp ip6 saddr != :: update @flood_v6 { ip6 saddr limit rate over 200/second burst 250 packets } counter drop
+    ip protocol udp ip saddr != 0.0.0.0 update @flood_v4 { ip saddr limit rate over 200/second burst 250 packets } counter drop comment "udp_flood"
+    ip6 nexthdr udp ip6 saddr != :: update @flood_v6 { ip6 saddr limit rate over 200/second burst 250 packets } counter drop comment "udp_flood"
 
     ########################################################
 
     # honeyport counter for userspace stats
-    tcp dport @honey_ports counter queue num 1
+    tcp dport @honey_ports counter queue num 1 comment "honeyport_drop"
 
 
     # these port are always transmitted to userspace for DPI, ignores established relation

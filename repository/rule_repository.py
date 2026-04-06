@@ -16,7 +16,7 @@ class RuleRepository:
     def get_all() -> List[RuleModel]:
         """
         Return rules from table
-        :return:List of rules
+        :return: List of rules
         """
         try:
             with sqlite3.connect(DB_NAME) as conn:

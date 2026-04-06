@@ -63,4 +63,3 @@ def init_db():
     connection.commit()
     connection.close()
 
-    logger.info("[DB] Initialized")

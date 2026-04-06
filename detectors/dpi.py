@@ -2,6 +2,8 @@ import re
 
 from loguru import logger
 
+from domain.models import PacketInfo
+
 
 class DPIEngine:
     """
@@ -22,13 +24,15 @@ class DPIEngine:
             re.compile(r"nikto", re.IGNORECASE)
         ]
 
-    def inspect(self, packet_data: dict) -> str:
+    def inspect(self, packet_info: PacketInfo) -> str:
         """
         scans packet payload
-        :param packet_data:
+        :param packet_info:
         :return: string with malitious context
         """
-        payload = packet_data.get("payload")
+        logger.debug("[DPI] - INSPECTING...")
+
+        payload = packet_info.payload
 
         if not payload:
             return None

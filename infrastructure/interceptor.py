@@ -33,7 +33,7 @@ class PacketInterceptor:
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-    def _signal_handler(self, signum):
+    def _signal_handler(self, signum, frame):
         logger.info(f"\n[SIGNAL] {signum} received - shutting down")
         self.stop_interceptor()
         sys.exit(0)
@@ -64,19 +64,20 @@ class PacketInterceptor:
             return
 
         logger.debug(f"[PACKET] {packet_info.protocol} "
-                     f"{packet_info.ip_src}:{packet_info.port_src} ->"
+                     f"{packet_info.ip_src}:{packet_info.port_src} -> "
                      f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
         # Rule Engine
         decision = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
-            logger.debug("[INTERCEPTOR] DROP: STATIC RULE")
+            logger.warning("[INTERCEPTOR] DROP: STATIC RULE")
             self.actions.drop_packet(packet, packet_info, "RULE_ENGINE_DROP")
             return
 
         # Honeyport
         honey_alert = self.honeyport.inspect(packet_info)
         if honey_alert:
+            logger.warning("[INTERCEPTOR] DROP: HONEYPORT")
             self.actions.drop_packet(packet, packet_info, f"HONEYPORT_DROP: {honey_alert}")
             self.actions.ban_ip(packet_info.ip_src, reason=honey_alert)
             return
@@ -84,6 +85,7 @@ class PacketInterceptor:
         # DPI
         dpi_alert = self.dpi.inspect(packet_info)
         if dpi_alert:
+            logger.warning("[INTERCEPTOR] DROP: DPI")
             self.actions.drop_packet(packet, packet_info, f"DPI_DROP: {dpi_alert}")
             self.actions.ban_ip(packet_info.ip_src, reason=dpi_alert)
             return

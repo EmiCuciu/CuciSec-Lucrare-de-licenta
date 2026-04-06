@@ -1,5 +1,7 @@
 from loguru import logger
 
+from domain.models import PacketInfo
+
 
 class HoneyportEngine:
     """
@@ -10,15 +12,15 @@ class HoneyportEngine:
     def __init__(self, honey_ports):
         self.honey_ports = honey_ports if honey_ports else [23, 2323, 3389, 4444, 9999]
 
-    def inspect(self, packet_data: dict):
+    def inspect(self, packet_info: PacketInfo):
         """
         Verifies if source ip tried to access any fake port
-        :param packet_data: packet metadata
+        :param packet_info: packet metadata
         :return: reason for blocking / NONE if pachet is legitim
         """
-
-        port_dst = packet_data.get("port_dst")
-        protocol = packet_data.get("protocol")
+        logger.debug("[HONEYPORT] - INSPECTING...")
+        port_dst = packet_info.port_dst
+        protocol = packet_info.protocol
 
         if protocol in ["TCP", "UDP"] and port_dst in self.honey_ports:
             logger.warning(f"[HONEYPORT ALERT] Suspicious activity -> {protocol}:{port_dst}")

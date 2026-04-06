@@ -21,7 +21,7 @@ def main():
 
     init_db()
 
-    nft = NftablesManager
+    nft = NftablesManager()
     script_path = os.path.join(os.path.dirname(__file__), "scripts", "nftables_setup.sh")
     nft.setup(script_path)
     logger.info("[BOOT] Kernel initialized (nftables flushed & created)")

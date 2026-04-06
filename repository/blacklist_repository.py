@@ -43,8 +43,8 @@ class BlacklistRepository:
                 return [
                     BlacklistEntry(id=row[0],
                                    ip=row[1],
-                                   reason=[2],
-                                   timestamp=[3])
+                                   reason=row[2],
+                                   timestamp=row[3])
                     for row in cursor.fetchall()
                 ]
         except sqlite3.Error as e:

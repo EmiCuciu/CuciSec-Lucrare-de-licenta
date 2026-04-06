@@ -30,6 +30,7 @@ def sync_blacklist_to_kernel():
     uses (batch processing) for performance
     :return: NONE
     """
+    banned_ips = []
 
     try:
         with sqlite3.connect(DB_NAME) as connection:
@@ -37,8 +38,10 @@ def sync_blacklist_to_kernel():
             cursor.execute("SELECT ip from Blacklist")
 
             banned_ips = [row[0] for row in cursor.fetchall()]
+
     except sqlite3.Error as e:
         print(f"Error reading from db: {e}")
+        return
 
     if not banned_ips:
         print("DB Blacklist empty")
@@ -72,6 +75,8 @@ def sync_blacklist_to_kernel():
         print(f"[!] Eroare la injectarea regulilor în Kernel: {e}")
 
 
+interceptor: PacketInterceptor = None
+
 def main():
     print("-" * 40)
     print("CuciSec Firewall started")
@@ -82,6 +87,8 @@ def main():
 
     sync_blacklist_to_kernel()
     print("Blacklist synced from DB to Kernel")
+
+    global interceptor
 
     try:
         interceptor = PacketInterceptor(queue_num=1)

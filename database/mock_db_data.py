@@ -24,12 +24,9 @@ if __name__ == '__main__':
     #     '''
     # )
 
+    # id reset
     cursor.execute('DELETE FROM sqlite_sequence WHERE name="Blacklist" OR name="Rules";')
 
-    cursor.execute('''
-                   INSERT INTO Rules (ip_src, port, protocol, action, description, enabled)
-                   VALUES (NULL, 9999, 'TCP', 'DROP', 'TEST STATIC: Blocheaza port 9999', 1)
-                   ''')
 
     # cursor.execute('''
     #                INSERT INTO Rules (ip_src, port, protocol, action, description, enabled)

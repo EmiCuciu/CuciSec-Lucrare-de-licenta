@@ -19,7 +19,21 @@ class FirewallActions:
         self.db_worker = threading.Thread(target=self.async_db_writer, daemon=True)
         self.db_worker.start()
 
+    def _log_to_db(self, packet_data, action_taken, details=""):
+        """
+        Function that store packet into Logs
+        :param packet_data: dictionary with packet metadata ( ip_src, ip_dst, protocol, port_src, port_dst, payload )
+        :param action_taken: ACCEPT, DROP or BAN
+        :param details: optional string with details about the action ( e.g. reason for BAN )
+        :return: None
+        """
+        self.log_queue.put((packet_data, action_taken, details))
+
     def async_db_writer(self):
+        """
+        Producer-Consumer pattern, asynchronous logging into Logs table
+        :return: None
+        """
         connection_worker = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = connection_worker.cursor()
 
@@ -28,6 +42,23 @@ class FirewallActions:
 
             if log_item is None:
                 break
+
+            if len(log_item) == 4 and log_item[3] == "blacklist":
+                packet_data, _, reason, _ = log_item
+                try:
+                    cursor.execute(
+                        "INSERT OR IGNORE INTO Blacklist (ip, reason) VALUES (?, ?)",
+                        (packet_data["ip_src"], reason)
+                    )
+                    connection_worker.commit()
+
+                except Exception as e:
+                    print(f"Worker Blacklist Error: {e}")
+                finally:
+                    self.log_queue.task_done()
+                continue
+
+
 
             packet_data, action_taken, details = log_item
 
@@ -49,18 +80,12 @@ class FirewallActions:
                 self.log_queue.task_done()
 
     def stop_worker(self):
-        self.log_queue.put(None)
-        self.db_worker.join()
-
-    def _log_to_db(self, packet_data, action_taken, details=""):
         """
-        Function that store packet into Logs
-        :param packet_data: dictionary with packet metadata ( ip_src, ip_dst, protocol, port_src, port_dst, payload )
-        :param action_taken: ACCEPT, DROP or BAN
-        :param details: optional string with details about the action ( e.g. reason for BAN )
+        Stops the logging thread
         :return: None
         """
-        self.log_queue.put((packet_data, action_taken, details))
+        self.log_queue.put(None)
+        self.db_worker.join()
 
     def accept_packet(self, packet, packet_data, details="ACCEPTED"):
         """
@@ -94,21 +119,15 @@ class FirewallActions:
 
         print(f"IPS Alert: Banning IP {ip_address} for reason: {reason}")
 
-        # Add IP to Blacklist table (CuciSec.db)
-        try:
-            connection = sqlite3.connect(DB_NAME, check_same_thread=False)
-            cursor = connection.cursor()
+        ban_log_data = {
+            "ip_src": ip_address,
+            "ip_dst": "N/A",
+            "protocol": "N/A",
+            "port_src": 0,
+            "port_dst": 0
+        }
 
-            cursor.execute("""
-                           INSERT OR IGNORE INTO Blacklist (ip, reason)
-                           VALUES (?, ?)
-                           """, (ip_address, reason))
-
-            connection.commit()
-            connection.close()
-
-        except Exception as e:
-            print(f"Error inserting into Blacklist table (CuciSec.db): {e}")
+        self.log_queue.put((ban_log_data, "BAN", reason, "blacklist"))
 
         # Add IP to Blacklist table (Kernel / nftables )
         try:

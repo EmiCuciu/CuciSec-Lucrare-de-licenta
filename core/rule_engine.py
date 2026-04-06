@@ -40,6 +40,14 @@ class RuleEngine:
             if connection:
                 connection.close()
 
+    def reload_rules(self):
+        """
+        Hot-Reload rules in RAM from db when adding/deleting a rule
+        :return: None
+        """
+        self.load_rules()
+        print("RuleEngine: rules reloaded into RAM")
+
     def evaluate(self, packet_data: dict):
         """
         Compares the current packet with in-memory rules

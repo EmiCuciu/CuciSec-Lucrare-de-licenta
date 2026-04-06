@@ -18,6 +18,9 @@ class PacketAnalyzer:
         """
 
         try:
+            if not raw_payload:
+                return None
+
             # Verify ip version reading first 4 bits
             version = raw_payload[0] >> 4
 
@@ -30,9 +33,6 @@ class PacketAnalyzer:
                 ip_layer = IPv6
 
             else:
-                return None
-
-            if not packet.haslayer(ip_layer):
                 return None
 
         except Exception as e:

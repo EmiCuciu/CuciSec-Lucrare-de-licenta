@@ -49,6 +49,7 @@ flowchart TD
     subgraph Kernel [Kernel Space - Data Plane]
         NAT[PREROUTING: NAT / DNAT \nPort Forwarding]
         FWD[FORWARD Hook: nftables]
+        IPS{ > RATE LIMIT}
         BL{Set O1: blacklist}
         DROP_K[DROP Nativ]
         NFQ[NFQUEUE num 1]
@@ -62,7 +63,6 @@ flowchart TD
 
         subgraph SecFilters [Motor de Securitate Secvențial]
             RE{1. Rule Engine In-Memory\nZone, IP, Port}
-            IPS{2. IPS Engine\nFlood & Rate Limit}
             HP{3. Honeyport\nCapcană Porturi}
             DPI{4. DPI Engine\nAnaliză Payload SQLi/XSS}
         end
@@ -81,7 +81,8 @@ flowchart TD
 
 %% Flow-ul principal
     P_IN --> NAT --> FWD
-    FWD --> BL
+    FWD --> IPS
+    IPS --> |A TRECUT DE LIMITA| BL
     BL -->|Adresă Blocată| DROP_K
     BL -->|Adresă Necunoscută / Permisă| NFQ
     NFQ --> PI
@@ -89,9 +90,7 @@ flowchart TD
 %% Logica de decizie
     RE -->|Match DROP| ACT_D
     RE -->|Match ACCEPT| ACT_A
-    RE -->|Nicio Regulă| IPS
-    IPS -->|Flood Detectat| ACT_D
-    IPS -->|Trafic Normal| HP
+    RE -->|Nicio Regulă| HP
     HP -->|Atinge Port Fals| ACT_D
     HP -->|Port Curat| DPI
     DPI -->|Semnătură Malițioasă| ACT_D

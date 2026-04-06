@@ -1,6 +1,7 @@
 class HoneyportEngine:
     """
-    Active drop based on trap ports, any ip that tries to connect to these fake port is considered an attack and it is automatically blocked
+    Pro-Active Security drop based on trap ports, any ip that tries to connect to these
+    fake port is considered an attack and it is automatically blocked
     """
 
     def __init__(self, honey_ports = None):

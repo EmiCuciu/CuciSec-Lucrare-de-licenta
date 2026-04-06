@@ -1,3 +1,5 @@
 /zzz_bambam/
 /venv/
 /database/CuciSec.db
+/database/CuciSec.db-shm
+/database/CuciSec.db-wal

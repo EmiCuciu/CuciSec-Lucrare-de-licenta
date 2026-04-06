@@ -5,12 +5,16 @@ DB_NAME = "database/CuciSec.db"
 
 def init_db():
     """
-    Initialize the database with necessary tables for rules, logs, and blacklist and create indexes for efficient querying on the Logs table.
+    Initialize the database with necessary tables for rules, logs, and blacklist
+    and create indexes for efficient querying on the Logs table.
     :return: None
     """
 
     connection = sqlite3.connect(DB_NAME)
     cursor = connection.cursor()
+
+    # enables reading and writing simultaneously
+    cursor.execute('PRAGMA journal_mode=WAL;')
 
     cursor.execute(
         '''CREATE TABLE IF NOT EXISTS Rules
@@ -50,11 +54,9 @@ def init_db():
            )'''
     )
 
-    cursor.execute(
-        '''
-        CREATE INDEX IF NOT EXISTS idx_logs_ip_src ON Logs (ip_src)
-        '''
-    )
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_ip_src ON Logs (ip_src)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON Logs (timestamp)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_protocol ON Logs (protocol)')
 
     connection.commit()
     connection.close()

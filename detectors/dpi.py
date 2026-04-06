@@ -1,5 +1,8 @@
 import re
 
+from loguru import logger
+
+
 class DPIEngine:
     """
     Deep Packet Inspection -> (Layer 7)
@@ -32,6 +35,7 @@ class DPIEngine:
 
         for pattern in self.malicious_signatures:
             if pattern.search(payload):
+                logger.warning(f"[DPI ALERT] Attack detected: Signature '{pattern.pattern}'")
                 return f"Attack detected: Signature '{pattern.pattern}'"
 
         return None

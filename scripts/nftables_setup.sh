@@ -101,6 +101,4 @@ table inet cucisec {
 
 EOF
 
-#TODO: trebuie de schibat 'hook input' in 'hook forward' ca sa fie NETWORK-IPS
-
-echo "CuciSec nftables initialized - script ended"
+#TODO: trebuie de schimbat 'hook input' in 'hook forward' ca sa fie NETWORK-IPS

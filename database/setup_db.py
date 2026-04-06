@@ -1,5 +1,7 @@
 import sqlite3
 
+from loguru import logger
+
 DB_NAME = "database/CuciSec.db"
 
 
@@ -61,6 +63,4 @@ def init_db():
     connection.commit()
     connection.close()
 
-
-if __name__ == "__main__":
-    init_db()
+    logger.info("[DB] Initialized")

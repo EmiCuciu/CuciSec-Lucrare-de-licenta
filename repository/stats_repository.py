@@ -1,4 +1,5 @@
 import sqlite3
+from typing import List
 
 from loguru import logger
 
@@ -26,14 +27,16 @@ class StatsRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("SELECT COUNT(*) FROM Logs")
-                stats["total_logs"] = cursor.fetchone()[0]
-
-                cursor.execute("SELECT COUNT(*) FROM Logs WHERE action_taken = 'ACCEPT'")
-                stats["accepted"] = cursor.fetchone()[0]
-
-                cursor.execute("SELECT COUNT(*) FROM Logs WHERE action_taken = 'DROP'")
-                stats["dropped"] = cursor.fetchone()[0]
+                cursor.execute("""
+                               SELECT COUNT(*)                                                 as total,
+                                      SUM(CASE WHEN action_taken = 'ACCEPT' THEN 1 ELSE 0 END) as accepted,
+                                      SUM(CASE WHEN action_taken = 'DROP' THEN 1 ELSE 0 END)   as dropped
+                               FROM Logs
+                               """)
+                row = cursor.fetchone()
+                stats["total_logs"] = row[0]
+                stats["accepted"] = row[1]
+                stats["dropped"] = row[2]
 
                 cursor.execute("SELECT COUNT(*) FROM Blacklist")
                 stats["banned_ips"] = cursor.fetchone()[0]
@@ -42,3 +45,25 @@ class StatsRepository:
             logger.error(f"[StatsRepository] error DB: {e}")
 
         return stats
+
+    @staticmethod
+    def get_recent_bans(limit: int = 5) -> List[dict]:
+        """
+        return last banned ip with timestamp
+        :param limit: integer
+        :return: list of banned ips
+        """
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT ip, reason, timestamp FROM Blacklist "
+                               "ORDER BY timestamp DESC LIMIT ?", (limit,))
+                return [
+                    {"ip": row[0],
+                     "reason": row[1],
+                     "timestamp": row[2]}
+                    for row in cursor.fetchall()
+                ]
+        except sqlite3.Error as e:
+            logger.error(f"[StatsRepository] get_recent_bans error: {e}")
+            return []

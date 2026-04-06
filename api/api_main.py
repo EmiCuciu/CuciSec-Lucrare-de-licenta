@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route

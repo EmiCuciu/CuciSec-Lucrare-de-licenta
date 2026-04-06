@@ -69,7 +69,11 @@ class FloodEngine:
         return None
 
     def _cleanup_old_ips(self, current_time: float):
-        """Șterge IP-urile care nu au mai trimis pachete de 5 x TIME_WINDOW"""
+        """
+        Deletes old ips which are inactive from 2x TIME_WINDOW
+        :param current_time: current time
+        :return: None
+        """
         with self._lock:
             dead_ips = [
                 ip for ip, times in self.ip_history.items()

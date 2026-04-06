@@ -9,7 +9,7 @@ from infrastructure.nftables_manager import NftablesManager
 from repository.blacklist_repository import BlacklistRepository
 
 router = APIRouter(prefix="/api/blacklist", tags=["Blacklist"])
-blacklist_repo = BlacklistRepository
+blacklist_repo = BlacklistRepository()
 
 
 @router.get("/", response_model=List[BlacklistResponse])

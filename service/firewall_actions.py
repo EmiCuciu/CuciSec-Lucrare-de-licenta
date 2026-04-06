@@ -16,7 +16,9 @@ class FirewallActions:
         self._blacklist_repo = BlacklistRepository()
         self._nft = NftablesManager()
 
-        self._banned_ips: set = set()
+        existing = self._blacklist_repo.get_all_ips()
+        self._banned_ips: set = set(existing)
+        logger.info(f"[FirewallActions] Cache preloaded: {len(self._banned_ips)} banned IPs")
 
     def accept_packet(self, packet, packet_info: PacketInfo, details: str = "DEFAULT_ACCEPT"):
         """
@@ -50,6 +52,8 @@ class FirewallActions:
 
         if ip_address in self._banned_ips:
             return
+
+        self._banned_ips.add(ip_address)
 
         logger.warning(f"[FirewallActions] [BAN] {ip_address} | reason: {reason}")
 

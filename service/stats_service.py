@@ -28,7 +28,7 @@ class StatsService:
                 if not rule:
                     continue
 
-                comment = rule.get("comment")
+                comment = rule.get("comment")   # "tcp_syn_flood", "icmp_flood", "udp_flood"
                 if not comment:
                     continue
 

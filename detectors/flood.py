@@ -14,7 +14,9 @@ class FloodEngine:
 
     def __init__(self):
 
+        # dict with ip as key and list of timestamps as value, for counting new connections in TIME_WINDOW
         self.ip_history = defaultdict(list)
+
         self._lock = threading.Lock()
         self.TIME_WINDOW = 12.0     # 12 seconds admitted flood for graphic visualize
 

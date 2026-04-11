@@ -36,3 +36,12 @@ def get_logs(
     )
 
     return logs
+
+
+@router.get("/count")
+def get_logs_count_by_interval():
+    """
+    :return: log counts grouped by minute
+    """
+    logger.debug("[LogRoute] getting log counts for chart")
+    return log_repo.get_log_counts_by_minute()

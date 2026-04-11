@@ -72,6 +72,7 @@ class PacketInterceptor:
                      f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
 
+        # Flood Engine
         flood_alert = self.flood.inspect(packet_info)
         if flood_alert:
             logger.warning("[INTERCEPTOR] DROP & BAN: FLOOD")
@@ -80,10 +81,11 @@ class PacketInterceptor:
             return
 
         # Rule Engine
-        decision = self.rule_engine.evaluate(packet_info)
+        decision, zone = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
-            logger.warning("[INTERCEPTOR] DROP: STATIC RULE")
-            self.actions.drop_packet(packet, packet_info, "RULE_ENGINE_DROP")
+            label = f"RULE_ENGINE_DROP_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_DROP"
+            logger.warning(f"[INTERCEPTOR] DROP: STATIC RULE ({label})")
+            self.actions.drop_packet(packet, packet_info, label)
             return
 
         # Honeyport
@@ -104,8 +106,9 @@ class PacketInterceptor:
 
         # Rule Engine ACCEPT
         if decision == "ACCEPT":
-            logger.info("[INTERCEPTOR] ACCEPT: STATIC RULE")
-            self.actions.accept_packet(packet, packet_info, "RULE_ENGINE_ACCEPT")
+            label = f"RULE_ENGINE_ACCEPT_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_ACCEPT"
+            logger.info(f"[INTERCEPTOR] ACCEPT: STATIC RULE ({label})")
+            self.actions.accept_packet(packet, packet_info, label)
             return
 
         # Default Policy - DEFAULT ACCEPT

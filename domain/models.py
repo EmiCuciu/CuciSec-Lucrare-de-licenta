@@ -22,6 +22,7 @@ class RuleModel:
     """
     action: str
     enabled: int = 1
+    zone: str = "WAN"
     id: Optional[int] = None
     ip_src: Optional[str] = None
     port: Optional[int] = None
@@ -54,12 +55,3 @@ class BlacklistEntry:
     reason: str
     id: Optional[int] = None
     timestamp: Optional[str] = None
-
-@dataclass
-class FloodEvent:
-    ip: str
-    protocol: str
-    packet_count: int
-    time_window: float
-    reason: str
-    timestamp: float

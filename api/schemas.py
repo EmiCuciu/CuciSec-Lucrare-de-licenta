@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, field_validator, ConfigDict
 
+
 # Very cool ~~~ pydantic ~~~
 
 class RuleCreate(BaseModel):
@@ -14,6 +15,7 @@ class RuleCreate(BaseModel):
     action: str
     description: Optional[str] = None
     enabled: int = 1
+    zone: str = "WAN"
 
     @field_validator("action")
     @classmethod
@@ -48,6 +50,7 @@ class RuleResponse(BaseModel):
     action: str
     description: Optional[str]
     enabled: int
+    zone: str
 
     # ~~~ cool ~~~
     model_config = ConfigDict(from_attributes=True)

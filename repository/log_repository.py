@@ -94,3 +94,33 @@ class LogRepository:
         except sqlite3.Error as e:
             logger.error(f"LogRepository.get_filtered_logs error: {e}")
             return []
+
+    @staticmethod
+    def get_log_counts_by_minute() -> List[dict]:
+        """
+        Returns log counts grouped by minute (last 30 mins)
+        used for real-time traffic chart
+        :return: List of logs
+        """
+
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                               SELECT strftime('%H:%M', timestamp)                                 as minute,
+                                      SUM(CASE WHEN action_taken LIKE 'ACCEPT%' THEN 1 ELSE 0 END) as accepted,
+                                      SUM(CASE WHEN action_taken LIKE 'DROP%' THEN 1 ELSE 0 END)   as dropped
+                               FROM Logs
+                               WHERE timestamp >= datetime('now', '-30 minutes')
+                               GROUP BY minute
+                               ORDER BY minute
+                               """)
+                return [
+                    {"minute": row[0],
+                     "accepted": row[1] or 0,
+                     "dropped": row[2] or 0}
+                    for row in cursor.fetchall()
+                ]
+        except sqlite3.Error as e:
+            logger.error(f"[LogRepository] get_log_counts_by_minute error: {e}")
+            return []

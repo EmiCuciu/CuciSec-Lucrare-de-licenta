@@ -22,7 +22,14 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                               SELECT id, ip_src, port, protocol, action, description, enabled
+                               SELECT id,
+                                      ip_src,
+                                      port,
+                                      protocol,
+                                      action,
+                                      description,
+                                      enabled,
+                                      zone
                                FROM Rules
                                ORDER BY id
                                ''')
@@ -53,7 +60,14 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                               SELECT id, ip_src, port, protocol, action, description, enabled
+                               SELECT id,
+                                      ip_src,
+                                      port,
+                                      protocol,
+                                      action,
+                                      description,
+                                      enabled,
+                                      zone
                                FROM Rules
                                WHERE enabled = 1
                                ORDER BY id
@@ -66,7 +80,8 @@ class RuleRepository:
                         protocol=row[3].upper() if row[3] else None,
                         action=row[4].upper(),
                         description=row[5],
-                        enabled=row[6]
+                        enabled=row[6],
+                        zone=row[7]
                     )
                     for row in cursor.fetchall()
                 ]
@@ -86,9 +101,9 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO Rules (ip_src, port, protocol, action, description, enabled) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
-                    (rule.ip_src, rule.port, rule.protocol, rule.action, rule.description, rule.enabled)
+                    "INSERT INTO Rules (ip_src, port, protocol, action, description, enabled, zone) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (rule.ip_src, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone)
                 )
                 conn.commit()
                 return cursor.lastrowid

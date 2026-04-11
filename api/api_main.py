@@ -1,5 +1,8 @@
+import os.path
+
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route
 
@@ -35,13 +38,16 @@ def create_app(rule_engine=None) -> FastAPI:
     app.include_router(blacklist_route.router)
     app.include_router(stats_route.router)
 
-
-    @app.get("/")
+    @app.get("/api")
     def root():
         return {
             "system": "CuciSec",
             "status": "running",
             "docs": "/docs"
         }
+
+    frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+    if os.path.exists(frontend_path):
+        app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
     return app

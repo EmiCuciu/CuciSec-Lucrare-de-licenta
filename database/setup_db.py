@@ -1,7 +1,5 @@
 import sqlite3
 
-from loguru import logger
-
 DB_NAME = "database/CuciSec.db"
 
 
@@ -27,7 +25,8 @@ def init_db():
                protocol    TEXT,
                action      TEXT NOT NULL,
                description TEXT,
-               enabled     INTEGER DEFAULT 1
+               enabled INTEGER DEFAULT 1,
+               zone    TEXT    DEFAULT 'WAN'
            )'''
     )
 

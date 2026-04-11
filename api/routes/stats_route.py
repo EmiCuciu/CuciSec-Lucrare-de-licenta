@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from loguru import logger
 
 from api.schemas import StatsResponse
 from infrastructure.nftables_manager import NftablesManager

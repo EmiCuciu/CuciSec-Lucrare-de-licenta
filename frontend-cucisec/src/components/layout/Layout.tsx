@@ -1,5 +1,5 @@
 import {Link, Outlet, useLocation} from "react-router-dom"
-import {Ban, LayoutDashboard, Network, ScrollText, Shield} from "lucide-react";
+import {Ban, LayoutDashboard, ScrollText, Shield} from "lucide-react";
 import {cn} from "@/lib/utils"
 
 export default function Layout() {
@@ -7,9 +7,9 @@ export default function Layout() {
 
     const navItems = [
         {name: "Dashboard", path: "/", icon: LayoutDashboard},
-        {name: "Reguli Firewall", path: "/rules", icon: Shield},
-        {name: "Loguri", path: "/logs", icon: ScrollText},
+        {name: "Rules", path: "/rules", icon: Shield},
         {name: "Blacklist", path: "/blacklist", icon: Ban},
+        {name: "Logs", path: "/logs", icon: ScrollText},
     ];
 
     return (
@@ -18,11 +18,12 @@ export default function Layout() {
             <aside className="w-64 border-r border-border bg-card/50 px-4 py-6 flex flex-col">
                 <div className="flex items-center gap-3 mb-10 px-2">
                     <div className="bg-primary/20 p-2 rounded-lg border border-primary/30">
-                        <Network className="w-6 h-6 text-primary"/>
+                        <Shield className="w-6 h-6 text-primary"/>
                     </div>
                     <h1 className="text-xl font-bold tracking-tight">CuciSec</h1>
                 </div>
 
+                {/* Routes-navigation */}
                 <nav className="flex flex-col gap-2">
                     {navItems.map((item) => {
                         const Icon = item.icon;

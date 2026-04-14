@@ -1,8 +1,7 @@
-import {Activity, ServerCrash, ShieldAlert, ShieldCheck} from "lucide-react";
+import {Activity, Loader2, ServerCrash, ShieldAlert, ShieldCheck} from "lucide-react";
 import {useStats} from "@/hooks/useStats";
 import {MetricCard} from "@/components/dashboard/MetricCard";
 import {TrafficChart} from "@/components/dashboard/TrafficChart";
-// Vom adauga FloodChart mai incolo cand il cream
 
 export default function DashboardPage() {
     const {data: stats, isLoading, isError} = useStats();
@@ -10,8 +9,9 @@ export default function DashboardPage() {
     if (isLoading) {
         return (
             <div className="flex h-[50vh] items-center justify-center">
-                <div className="text-muted-foreground animate-pulse text-lg">
-                    Connecting to Firewall...
+                <div className="flex items-center gap-3 text-muted-foreground">
+                    <Loader2 className="h-6 w-6 animate-spin"/>
+                    <span className="animate-pulse text-lg">Connecting to Firewall...</span>
                 </div>
             </div>
         );
@@ -82,9 +82,9 @@ export default function DashboardPage() {
             {/* Row 2: Graphs */}
             <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                 <TrafficChart/>
-                {/* Aici va veni FloodChart-ul pe care il facem in pasul urmator */}
+
                 <div
-                    className="rounded-xl border border-border bg-card text-card-foreground shadow-sm flex items-center justify-center p-6 min-h-[300px]">
+                    className="rounded-xl border border-border bg-card text-card-foreground shadow-sm flex items-center justify-center p-6 min-h-75">
                     <p className="text-muted-foreground">Flood Chart Placeholder</p>
                 </div>
             </div>

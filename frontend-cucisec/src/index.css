@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* Includem culorile tale specifice in engine-ul de Tailwind v4 */
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
@@ -32,7 +31,6 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  /* Culorile Semantice de la Lovable */
   --color-success: hsl(var(--success));
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
@@ -40,7 +38,6 @@
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
 
-  /* Background-urile pentru Carduri Stats de la Lovable */
   --color-card-stat-default: hsl(var(--card-stat-default));
   --color-card-stat-success: hsl(var(--card-stat-success));
   --color-card-stat-danger: hsl(var(--card-stat-danger));
@@ -51,7 +48,6 @@
   --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* Valorile tale brute de culori (Blue-Grey Dark Theme) */
 @layer base {
   :root {
     --background: 220 20% 10%;
@@ -84,7 +80,6 @@
 
     --radius: 0.75rem;
 
-    /* Semantic status colors */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -92,7 +87,6 @@
     --info: 200 95% 50%;
     --info-foreground: 0 0% 100%;
 
-    /* Card accent backgrounds */
     --card-stat-default: 220 18% 16%;
     --card-stat-success: 142 40% 18%;
     --card-stat-danger: 0 40% 20%;
@@ -107,6 +101,6 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-sans);
+      font-family: var(--font-sans), serif;
   }
 }

@@ -8,8 +8,8 @@ export function TrafficChart() {
     return (
         <Card className="col-span-1 lg:col-span-2">
             <CardHeader>
-                <CardTitle>Traffic (Last Minutes)</CardTitle>
-                <CardDescription>Accepted vs Droppend Packets</CardDescription>
+                <CardTitle>Traffic (Last 30 Minutes)</CardTitle>
+                <CardDescription>Accepted vs Dropped Packets</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
@@ -36,7 +36,7 @@ export function TrafficChart() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4}
                                                vertical={false}/>
                                 <XAxis
-                                    dataKey="minute"
+                                    dataKey="minutes"
                                     tick={{fontSize: 12, fill: "hsl(var(--muted-foreground))"}}
                                     stroke="hsl(var(--border))"
                                     tickLine={false}
@@ -68,7 +68,7 @@ export function TrafficChart() {
                                 <Line
                                     type="monotone"
                                     dataKey="dropped"
-                                    name="Respinse/Blocate"
+                                    name="Dropped"
                                     stroke="hsl(var(--destructive))"
                                     strokeWidth={3}
                                     dot={false}

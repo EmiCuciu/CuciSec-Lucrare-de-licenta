@@ -5,9 +5,27 @@ const API_BASE = "/api";
 // wrapper function for fetch
 async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${API_BASE}${url}`, options);
+
     if (!response.ok) {
-        throw new Error(`[ERROR API]: ${response.status} ${response.statusText}`);
+        let errorMessage = `Eroare Server(${response.status})`;
+
+        try {
+            const errorData = await response.json();
+
+            if (errorData.detail) {
+                if (Array.isArray(errorData.detail)) {
+                    errorMessage = errorData.detail.map((err: any) => `${err.loc.at(-1)}: ${err.msg}`).join(" | ");
+                } else {
+                    errorMessage= errorData.detail;
+                }
+            }
+        } catch (e) {
+            errorMessage = response.statusText;
+        }
+
+        throw new Error(errorMessage);
     }
+
     return response.json();
 }
 

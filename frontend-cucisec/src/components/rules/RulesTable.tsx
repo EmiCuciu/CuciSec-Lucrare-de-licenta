@@ -20,6 +20,9 @@ export function RulesTable() {
             await queryClient.invalidateQueries({queryKey: ["rules"]});
             toast.info("Rule status updated");
         },
+        onError: (error: Error) => {
+            toast.error(`Error at toggle: ${error.message}`);
+        }
     });
 
     const deleteMutation = useMutation({
@@ -28,6 +31,9 @@ export function RulesTable() {
             await queryClient.invalidateQueries({queryKey: ["rules"]});
             toast.success("Rule deleted");
         },
+        onError: (error: Error) => {
+            toast.error(`Error at deleting: ${error.message}`);
+        }
     });
 
 

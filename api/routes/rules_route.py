@@ -41,7 +41,8 @@ def create_rule(
         protocol=rule_data.protocol,
         action=rule_data.action,
         description=rule_data.description,
-        enabled=rule_data.enabled
+        enabled=rule_data.enabled,
+        zone=rule_data.zone
     )
     logger.debug(f"[RuleRoute] creating new rule {new_rule}")
 
@@ -62,7 +63,8 @@ def create_rule(
         protocol=new_rule.protocol,
         action=new_rule.action,
         description=new_rule.description,
-        enabled=new_rule.enabled
+        enabled=new_rule.enabled,
+        zone=new_rule.zone
     )
 
 

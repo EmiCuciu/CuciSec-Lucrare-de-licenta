@@ -56,8 +56,8 @@ export function AddRuleModal() {
             setOpen(false);
             form.reset();
         },
-        onError: () => {
-            toast.error("Failed to add rule. Check connection.");
+        onError: (error: Error) => {
+            toast.error(`Failed to add rule: ${error.message}`);
         },
     });
 

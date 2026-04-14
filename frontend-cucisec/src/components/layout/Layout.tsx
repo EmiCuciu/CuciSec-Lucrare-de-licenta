@@ -1,5 +1,5 @@
 import {Link, Outlet, useLocation} from "react-router-dom"
-import {Ban, LayoutDashboard, ScrollText, Shield} from "lucide-react";
+import {Ban, LayoutDashboard, Network, ScrollText, Shield} from "lucide-react";
 import {cn} from "@/lib/utils"
 
 export default function Layout() {
@@ -13,12 +13,12 @@ export default function Layout() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-background">
+        <div className="flex h-screen w-screen overflow-hidden bg-background">
             {/* Sidebar Layout */}
-            <aside className="w-64 border-r border-border bg-card/50 px-4 py-6 flex flex-col">
+            <aside className="w-64 shrink-0 border-r border-border bg-card/50 px-4 py-6 flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-10 px-2">
                     <div className="bg-primary/20 p-2 rounded-lg border border-primary/30">
-                        <Shield className="w-6 h-6 text-primary"/>
+                        <Network className="w-6 h-6 text-primary"/>
                     </div>
                     <h1 className="text-xl font-bold tracking-tight">CuciSec</h1>
                 </div>
@@ -48,9 +48,8 @@ export default function Layout() {
                 </nav>
             </aside>
 
-            { /* Main Content */}
-            <main className="flex-1 p-8 overflow-y-auto">
-                <div className="max-w-6xl mx-auto">
+            <main className="flex-1 p-6 overflow-y-auto">
+                <div className="w-full h-full">
                     <Outlet/>
                 </div>
             </main>

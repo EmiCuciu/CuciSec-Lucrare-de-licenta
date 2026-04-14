@@ -78,7 +78,7 @@ class NftablesManager:
     def get_stats() -> dict:
         """
         Read contor from Kernel and format to JSON
-        :return: dictionary with contors in JSON format
+        :return: dictionary with all the ruleset in JSON format
         """
         try:
             result = subprocess.run(

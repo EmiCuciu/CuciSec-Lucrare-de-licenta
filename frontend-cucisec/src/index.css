@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* Includem culorile tale specifice in engine-ul de Tailwind v4 */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Culorile Semantice de la Lovable */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Background-urile pentru Carduri Stats de la Lovable */
+  --color-card-stat-default: hsl(var(--card-stat-default));
+  --color-card-stat-success: hsl(var(--card-stat-success));
+  --color-card-stat-danger: hsl(var(--card-stat-danger));
+  --color-card-stat-warning: hsl(var(--card-stat-warning));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+/* Valorile tale brute de culori (Blue-Grey Dark Theme) */
+@layer base {
+  :root {
+    --background: 220 20% 10%;
+    --foreground: 210 20% 90%;
+
+    --card: 220 18% 14%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 220 18% 14%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 16% 20%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 220 14% 18%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 220 16% 22%;
+    --accent-foreground: 210 20% 90%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 20%;
+    --input: 220 14% 20%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Semantic status colors */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 200 95% 50%;
+    --info-foreground: 0 0% 100%;
+
+    /* Card accent backgrounds */
+    --card-stat-default: 220 18% 16%;
+    --card-stat-success: 142 40% 18%;
+    --card-stat-danger: 0 40% 20%;
+    --card-stat-warning: 38 40% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}

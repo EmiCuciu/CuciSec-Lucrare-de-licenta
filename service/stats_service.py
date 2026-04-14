@@ -9,7 +9,7 @@ class StatsService:
     def parse_flood_counters(nft_json: dict) -> dict:
         """
         Function that parse nft-json contors to counters for visualize
-        :param nft_json: `nft -j list ruleset` command
+        :param nft_json: provides a json type dict
         :return: counters
         """
         counters = {

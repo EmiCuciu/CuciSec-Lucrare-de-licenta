@@ -75,7 +75,7 @@ class PacketInterceptor:
         # Flood Engine
         flood_alert = self.flood.inspect(packet_info)
         if flood_alert:
-            logger.warning("[INTERCEPTOR] DROP & BAN: FLOOD")
+            logger.warning(f"[INTERCEPTOR] DROP & BAN: FLOOD - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, f"FLOOD_BAN_DROP: {flood_alert}")
             self.actions.ban_ip(packet_info.ip_src, reason=flood_alert)
             return
@@ -84,14 +84,14 @@ class PacketInterceptor:
         decision, zone = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
             label = f"RULE_ENGINE_DROP_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_DROP"
-            logger.warning(f"[INTERCEPTOR] DROP: STATIC RULE ({label})")
+            logger.warning(f"[INTERCEPTOR] DROP: STATIC RULE ({label}) - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, label)
             return
 
         # Honeyport
         honey_alert = self.honeyport.inspect(packet_info)
         if honey_alert:
-            logger.warning("[INTERCEPTOR] DROP: HONEYPORT")
+            logger.warning(f"[INTERCEPTOR] DROP: HONEYPORT - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, f"HONEYPORT_DROP: {honey_alert}")
             self.actions.ban_ip(packet_info.ip_src, reason=honey_alert)
             return
@@ -99,7 +99,7 @@ class PacketInterceptor:
         # DPI
         dpi_alert = self.dpi.inspect(packet_info)
         if dpi_alert:
-            logger.warning("[INTERCEPTOR] DROP: DPI")
+            logger.warning(f"[INTERCEPTOR] DROP: DPI - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, f"DPI_DROP: {dpi_alert}")
             self.actions.ban_ip(packet_info.ip_src, reason=dpi_alert)
             return

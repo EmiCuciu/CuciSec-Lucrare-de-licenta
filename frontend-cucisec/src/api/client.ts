@@ -32,8 +32,8 @@ async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
 export const api = {
 
     /// Rules
-    getRules: () => fetcher<Rule[]>('/rules'),
-    addRule: (rule: Omit<Rule, "id">) => fetcher<Rule>('/rules', {
+    getRules: () => fetcher<Rule[]>('/rules/'),
+    addRule: (rule: Omit<Rule, "id">) => fetcher<Rule>('/rules/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(rule)
@@ -41,10 +41,8 @@ export const api = {
     deleteRule: (id: number) => fetcher<{ message: string }>(`/rules/${id}`, {
         method: 'DELETE'
     }),
-    toggleRule: (id: number, enabled: number) => fetcher<Rule>(`/rules/${id}/toggle`, {
-        method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({enabled})
+    toggleRule: (id: number, enabled: number) => fetcher<Rule>(`/rules/${id}/toggle?enabled=${enabled}`, {
+        method: 'PATCH'
     }),
 
 
@@ -54,8 +52,8 @@ export const api = {
 
 
     /// Blacklist
-    getBlacklist: () => fetcher<BlacklistEntry[]>('/blacklist'),
-    banIp: (ip: string, reason: string) => fetcher<BlacklistEntry>('/blacklist', {
+    getBlacklist: () => fetcher<BlacklistEntry[]>('/blacklist/'),
+    banIp: (ip: string, reason: string) => fetcher<BlacklistEntry>('/blacklist/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ip, reason})
@@ -66,6 +64,6 @@ export const api = {
 
 
     /// Stats
-    getStats: () => fetcher<Stats>('/stats'),
+    getStats: () => fetcher<Stats>('/stats/'),
 
 };

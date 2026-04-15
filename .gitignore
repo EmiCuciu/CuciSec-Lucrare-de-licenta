@@ -6,3 +6,4 @@
 /database/CuciSec.db-wal
 /logs
 /frontend-cucisec/node_modules
+/.idea

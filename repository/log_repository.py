@@ -107,13 +107,14 @@ class LogRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                               SELECT strftime('%H:%M', timestamp)                                 as minute,
+                               SELECT strftime('%H:%M', datetime(timestamp, 'localtime'))          as minute_label,
                                       SUM(CASE WHEN action_taken LIKE 'ACCEPT%' THEN 1 ELSE 0 END) as accepted,
-                                      SUM(CASE WHEN action_taken LIKE 'DROP%' THEN 1 ELSE 0 END)   as dropped
+                                      SUM(CASE WHEN action_taken LIKE 'DROP%' THEN 1 ELSE 0 END)   as dropped,
+                                      strftime('%Y-%m-%d %H:%M', datetime(timestamp, 'localtime')) as sort_key
                                FROM Logs
                                WHERE timestamp >= datetime('now', '-30 minutes')
-                               GROUP BY minute
-                               ORDER BY minute
+                               GROUP BY sort_key
+                               ORDER BY sort_key ASC
                                """)
                 return [
                     {"minute": row[0],

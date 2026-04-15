@@ -2,6 +2,7 @@ import os.path
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import FileResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route
@@ -46,8 +47,25 @@ def create_app(rule_engine=None) -> FastAPI:
             "docs": "/docs"
         }
 
+    # Frontend SERVING
     frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend-cucisec", "dist")
+
     if os.path.exists(frontend_path):
-        app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend-cucisec")
+        assets_path = os.path.join(frontend_path, "assets")
+        if os.path.exists(assets_path):
+            app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
+        # CATCH ALL Route
+        @app.get("/{catchall:path}")
+        def serve_react_app(catchall: str):
+
+            if catchall.startswith("api"):
+                return RedirectResponse(url=f"/{catchall}/")
+
+            file_path = os.path.join(frontend_path, catchall)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+
+            return FileResponse(os.path.join(frontend_path, "index.html"))
 
     return app

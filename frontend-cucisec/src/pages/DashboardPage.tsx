@@ -35,7 +35,7 @@ export default function DashboardPage() {
             <div className="shrink-0">
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard Live</h1>
                 <p className="text-muted-foreground">
-                    Stats IRL from nftables and detection module
+                    Statistics Real Time from nftables and detection module
                 </p>
             </div>
 

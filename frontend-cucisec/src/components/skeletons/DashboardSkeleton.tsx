@@ -4,10 +4,10 @@ import {Card, CardContent, CardHeader} from "@/components/ui/card";
 export function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <div>
-        <Skeleton className="h-9 w-64 mb-2" />
-        <Skeleton className="h-5 w-96" />
-      </div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+            Real-time statistics from nftables and detection module.
+        </p>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (

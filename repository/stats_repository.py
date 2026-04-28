@@ -29,7 +29,7 @@ class StatsRepository:
 
                 cursor.execute("""
                                SELECT COUNT(*)                                                 as total,
-                                      SUM(CASE WHEN action_taken = 'ACCEPT' THEN 1 ELSE 0 END) as accepted,
+                                      SUM(CASE WHEN action_taken LIKE 'ACCEPT%' THEN 1 ELSE 0 END) as accepted,
                                       SUM(CASE WHEN action_taken = 'DROP' THEN 1 ELSE 0 END)   as dropped
                                FROM Logs
                                """)

@@ -3,6 +3,7 @@ import {useStats} from "@/hooks/useStats";
 import {MetricCard} from "@/components/dashboard/MetricCard";
 import {TrafficChart} from "@/components/dashboard/TrafficChart";
 import {DashboardSkeleton} from "@/components/skeletons/DashboardSkeleton.tsx";
+import {FloodChart} from "@/components/dashboard/FloodChart.tsx";
 
 export default function DashboardPage() {
     const {data: stats, isLoading, isError} = useStats();
@@ -16,7 +17,7 @@ export default function DashboardPage() {
             <div className="flex h-full items-center justify-center flex-col gap-4">
                 <ServerCrash className="h-12 w-12 text-destructive"/>
                 <div className="text-destructive font-semibold text-lg">
-                    ERROR: Cannot connect to FastApi (Port 8000).
+                    ERROR: Cannot connect to FastAPI (Port 8000).
                 </div>
                 <p className="text-muted-foreground">
                     Assure that backend is working
@@ -33,9 +34,9 @@ export default function DashboardPage() {
     return (
         <div className="flex flex-col h-full space-y-6 pb-2">
             <div className="shrink-0">
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard Live</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
                 <p className="text-muted-foreground">
-                    Statistics Real Time from nftables and detection module
+                    Real-time statistics from nftables and detection module.
                 </p>
             </div>
 
@@ -45,7 +46,7 @@ export default function DashboardPage() {
                     title="Total Analyzed Packets"
                     value={total.toLocaleString()}
                     icon={<Activity className="h-5 w-5"/>}
-                    trend="Active monitorizing"
+                    trend="Active monitoring"
                     variant="default"
                 />
 
@@ -75,11 +76,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 flex-1 min-h-0">
                 <TrafficChart/>
 
-                {/* TODO - to implement this shit */}
-                <div
-                    className="rounded-xl border border-border bg-card text-card-foreground shadow-sm flex items-center justify-center h-full">
-                    <p className="text-muted-foreground">Flood Chart Placeholder</p>
-                </div>
+                <FloodChart/>
             </div>
         </div>
     );

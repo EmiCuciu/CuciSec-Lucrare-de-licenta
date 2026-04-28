@@ -16,7 +16,7 @@ export function MetricCard({
                            }: MetricCardProps) {
     const variantStyles = {
         default: "card-stat-default text-foreground",
-        success: "card-stat-succes text-success",
+        success: "card-stat-success text-success",
         danger: "card-stat-danger text-destructive",
         warning: "card-stat-warning text-warning",
         info: "bg-info/10 text-info",

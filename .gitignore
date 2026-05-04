@@ -7,3 +7,5 @@
 /logs
 /frontend-cucisec/node_modules
 /.idea
+__pycache__/
+*.pyc

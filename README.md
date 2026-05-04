@@ -1,177 +1,161 @@
-# CuciSec
-## Sistem de Management și Interceptare a Traficului de Rețea
+# CuciSec – Intrusion Prevention System & Firewall
 
-Acest proiect reprezintă o lucrare de licență ce vizează dezvoltarea unui firewall software capabil să intercepteze pachete direct din Kernel-ul Linux, să le analizeze logic în Userspace folosind Python și să ofere o interfață web pentru administrare vizuală.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-important)](https://www.kernel.org/)
+[![Backend: Python 3.10+](https://img.shields.io/badge/Backend-Python_3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Frontend: React](https://img.shields.io/badge/Frontend-React_19_%7C_Vite-61dafb?logo=react&logoColor=black)](https://react.dev/)
+[![Status: Academic](https://img.shields.io/badge/Status-Bachelor's_Thesis-green)](#notă-academică)
 
----
-
-## Obiectiv Principal
-
-Dezvoltarea unei soluții care depășește limitările firewall-urilor statice, oferind inspecție la nivel de aplicație (Deep Packet Inspection) și răspuns automatizat la amenințări în timp real.
-
----
-
-## Arhitectură și Tehnologii
-
-Sistemul este structurat pe patru niveluri fundamentale:
-
-###   * **Nivelul Rețea (Kernel):**
-
-Bazat pe `Ubuntu Server` (cu potențial de portare pe OpenWrt/Raspberry Pi), utilizează `nftables` (pe lantul'forward')
-pentru routarea retelei și `NFQUEUE` pentru extragerea pachetelor din fluxul standard al sistemului.
-
-###   * **Nivelul Logic (Core Engine):**
-
-Implementat în `Python 3`, utilizează librăria `Scapy` pentru analiza detaliată și `NetfilterQueue` pentru procesarea
-pachetelor și emiterea verdictului de tip `ACCEPT` sau `DROP`.
-
-###   * **Nivelul Date:**
-
-Utilizarea `SQLite` pentru stocarea eficientă a log-urilor de trafic și a regulilor de filtrare.
-
-###   * **Nivelul Interfață (Web UI):**
-
-Backend dezvoltat în `FastAPI` și frontend realizat cu `HTML5`, `Bootstrap` și `Chart.js` pentru monitorizare grafică.
+> **CuciSec** este un sistem hibrid de tip Firewall și Intrusion Prevention System (IPS) (L3–L7). Proiectul face o punte între eficiența spațiului Kernel (rutare și limitare a ratei de pachete) și flexibilitatea spațiului Userspace (analiză profundă și euristică). 
+> Lucrare de licență elaborată la Facultatea de Matematică și Informatică, Universitatea Babeș-Bolyai, Cluj-Napoca (2026).
 
 ---
 
-## Diagramă de Funcționare
+## Cuprins
+
+1. [Arhitectura Sistemului](#arhitectura-sistemului)
+2. [Funcționalități Cheie](#funcționalități-cheie)
+3. [Stiva Tehnologică](#stiva-tehnologică)
+4. [Structura Proiectului](#structura-proiectului)
+5. [Cerințe de Sistem](#cerințe-de-sistem)
+6. [Instalare și Rulare](#instalare-și-rulare)
+7. [API Reference](#api-reference)
+
+---
+
+## Arhitectura Sistemului
+
+CuciSec implementează o arhitectură strictă **Data Plane / Control Plane**:
+
+* **Data Plane (Kernel Space):** Utilizează `nftables` pentru a asigura limitarea de viteză direct la nivelul interfeței de rețea, respingând traficul de tip flood cu un overhead minim. Menține Blacklist folosind seturi hash-table pentru căutare în timp $O(1)$.
+* **Control Plane (Userspace):** Pachetele legitime sau necunoscute sunt transferate din Kernel către Userspace prin mecanismul `NFQUEUE`. Aici, un motor Python procesează pachetele asincron, aplicând reguli statice (L3/L4), capcane (Honeyports) și analiză de conținut (L7 DPI).
 
 ```mermaid
 flowchart TD
-%% 1. Rețeaua Fizică
-    subgraph Network [Rețea Fizică]
-        P_IN([Pachet Intră - LAN / WAN])
-        P_OUT([Pachet Iese spre Destinație, Post routing])
+    subgraph Kernel [Data Plane - Linux Kernel]
+        IN([Pachet Intrare]) --> NFT[nftables: hook forward/input]
+        NFT --> RATE{Rate Limiting}
+        RATE -->|Limită Depășită| DROP_K[DROP Nativ]
+        RATE -->|În Limite| BL{Blacklist O1}
+        BL -->|Blocat| DROP_K
+        BL -->|Permis/Necunoscut| NFQ[NFQUEUE]
     end
 
-%% 2. Kernel Space
-    subgraph Kernel [Kernel Space - Data Plane]
-        NAT[PREROUTING: NAT / DNAT \nPort Forwarding]
-        FWD[FORWARD Hook: nftables]
-        IPS{ > RATE LIMIT}
-        BL{Set O1: blacklist}
-        DROP_K[DROP Nativ]
-        NFQ[NFQUEUE num 1]
-        NL[[nfnetlink: Notificări Asincrone]]
+    subgraph UserSpace [Control Plane - Python]
+        PI[Interceptor] --> SC[Scapy Decapsulare]
+        SC --> RE{Rule Engine L3/L4}
+        RE -->|Fără Match| HP{Honeyport}
+        HP -->|Port Sigur| DPI{DPI Layer 7}
+        
+        RE -->|Verdict| DEC[Decizie: ACCEPT/DROP]
+        HP -->|Trap| DEC
+        DPI -->|Regex| DEC
     end
 
-%% 3. User Space (Python)
-    subgraph UserSpace [User Space - Python Control Plane]
-        PI[Packet Interceptor]
-        SC[Scapy: Decapsulare L3 - L7]
-
-        subgraph SecFilters [Motor de Securitate Secvențial]
-            RE{1. Rule Engine In-Memory\nZone, IP, Port}
-            HP{3. Honeyport\nCapcană Porturi}
-            DPI{4. DPI Engine\nAnaliză Payload SQLi/XSS}
-        end
-
-        ACT_A[Verdict: ACCEPT]
-        ACT_D[Verdict: DROP & Ban IP]
-        AW((Async Logging Worker))
-    end
-
-%% 4. Bază de date & Web
-    subgraph DB_Web [Persistență & Interfață Web]
-        SQL[(SQLite Database)]
-        API[FastAPI Backend]
-        UI[Dashboard Web / Chart.js]
-    end
-
-%% Flow-ul principal
-    P_IN --> NAT --> FWD
-    FWD --> IPS
-    IPS --> |A TRECUT DE LIMITA| BL
-    BL -->|Adresă Blocată| DROP_K
-    BL -->|Adresă Necunoscută / Permisă| NFQ
     NFQ --> PI
-    PI --> SC --> RE
-%% Logica de decizie
-    RE -->|Match DROP| ACT_D
-    RE -->|Match ACCEPT| ACT_A
-    RE -->|Nicio Regulă| HP
-    HP -->|Atinge Port Fals| ACT_D
-    HP -->|Port Curat| DPI
-    DPI -->|Semnătură Malițioasă| ACT_D
-    DPI -->|Payload Curat| ACT_A
-%% Verdict spre Kernel
-    ACT_A -->|Returnează pachet| FWD_OUT(Trimitere în Rețea)
-    FWD_OUT --> P_OUT
-    ACT_D -. Injectare atomică IP .-> BL
-    ACT_D -. Emite event .-> NL
-%% Logare Asincronă
-    ACT_A -. Trimite metadate .-> AW
-    ACT_D -. Trimite metadate .-> AW
-    AW -. Scriere non - blocantă .-> SQL
-%% API
-    SQL <--> API <--> UI
-%% Stilizare
-    style DROP_K fill: #ff4d4d, stroke: #333, stroke-width: 2px, color: white
-    style ACT_D fill: #ff4d4d, stroke: #333, stroke-width: 2px, color: white
-    style ACT_A fill: #4CAF50, stroke: #333, stroke-width: 2px, color: white
-    style AW fill: #ffcc00, stroke: #333, stroke-width: 2px, color: black
+    DEC -->|Verdict via nfnetlink| Kernel
+    DEC -. async .-> LOG[(SQLite: Logs & Blacklist)]
 ```
 
 ---
 
-## Elemente de Inovație și Proces de Gândire
+## Funcționalități Cheie
 
-### Inspecție Layer 7 Lite (Deep Packet Inspection)
-
-**Concept:** Filtrare pe baza conținutului (payload), nu doar IP/Port.
-
-**Raționament:** Firewall-urile clasice analizează doar antetul (header). Proiectul vizează detectarea atacurilor mascate în porturi permise (ex. SQL Injection pe portul 80) prin scanarea activă a conținutului pachetului.
-
----
-
-### Securitate Reactivă (IPS - Intrusion Prevention System)
-
-**Concept:** Crearea automată de reguli în urma unui comportament suspect detectat.
-
-**Raționament:** Automatizarea apărării pentru a contracara atacuri de tip Flood. La depășirea unui prag critic de pachete/secundă, sistemul blochează sursa fără intervenție umană.
+* **Filtrare In-Memory L3/L4:** Reguli încărcate în RAM pentru latență zero. Suportă notare CIDR și zone-based filtering (LAN/WAN). Sistemul permite *Hot-Reload* (actualizarea regulilor prin API fără repornirea interceptorului).
+* **Deep Packet Inspection (DPI):** Inspecție selectivă la nivelul 7 (Application Layer) utilizând expresii regulate pre-compilate pentru detectarea payload-urilor malițioase (ex: SQL Injection, XSS, RCE) în traficul HTTP necriptat.
+* **Honeyport (Active Deception):** Expunerea deliberată a unor porturi capcană (ex: 23, 2323, 3389). Orice tentativă de conectare pe aceste porturi rezultă în banarea automată a adresei IP sursă.
+* **Behavioral IPS:** Motor dedicat care analizează comportamentul pe o fereastră glisantă, corelând datele cu alertele `nftables` pentru a izola atacatorii persistenți.
+* **Dashboard Real-Time:** Interfață web SPA pentru monitorizarea metricilor, gestionarea regulilor de firewall și auditarea jurnalelor (logs), cu smart polling asincron.
 
 ---
 
-### Mecanism Honeyport (Capcană)
+## Stiva Tehnologică
 
-**Concept:** Expunerea unor porturi false pentru identificarea timpurie a atacatorilor.
+**Backend / Core Engine:**
+* Python 3.10+
+* NetfilterQueue (Wrapper C peste libnetfilter_queue)
+* Scapy (Parsare pachete L3-L7)
+* FastAPI & Uvicorn (API REST și gestiunea stării asincrone)
+* SQLite (Mod WAL, citiri concurente, scrieri asincrone)
 
-**Raționament:** Utilizatorii legitimi accesează doar serviciile reale. Orice tentativă asupra acestor porturi "momeală" indică un bot sau un scaner, permițând blocarea proactivă a IP-ului.
-
----
-
-### Vizualizarea Real-Time a Amenințărilor
-
-**Concept:** Transformarea jurnalelor de tip text în indicatori vizuali dinamici.
-
-**Raționament:** Monitorizarea securității prin terminal este ineficientă în timpul unui atac masiv. Un dashboard permite identificarea instantanee a anomaliilor prin vârfuri de grafic.
-
----
-
-## Mecanisme Firewall Implementate
-
-* **Filtrarea pachetelor:** Gestionarea traficului pe baza protocolului, adresei IP și a portului (Layer 3/4).
-
-* **Inspecția de stare (Stateful Inspection):** Monitorizarea conexiunilor pentru a distinge între cereri noi și sesiuni deja stabilite.
-
-* **Management NAT / DNAT:** Facilitarea rutării traficului și a serviciilor de Port Forwarding către rețeaua internă.
-
-* **Userspace Interception:** Preluarea granulară a controlului prin redirecționarea pachetelor către logica de aplicație via NFQUEUE.
+**Frontend:**
+* React 19 + TypeScript + Vite
+* Tailwind CSS v4 & shadcn/ui
+* TanStack Query & Recharts
 
 ---
 
-## Mediu de Testare
+## Structura Proiectului
 
-Validarea sistemului a fost realizată într-un mediu virtualizat (VirtualBox) compus din:
+```plaintext
+.
+├── api/              # Rutele FastAPI (Rules, Logs, Blacklist, Stats)
+├── database/         # Configurare SQLite, scheme și conexiuni
+├── detectors/        # Logica de detecție: DPI, Flood, Honeyport
+├── frontend-cucisec/ # Aplicația în React/Vite
+├── infrastructure/   # Comunicarea cu Kernel-ul (NFQUEUE, nft_manager)
+├── repository/       # Interacțiunea cu baza de date 
+├── service/          # Logica de business (Rule Engine, Packet Analyzer)
+├── utils/            # Setări de configurare și logging (Loguru)
+└── firewall_main.py  # Entry-point-ul sistemului
+```
 
-* **VM 1 (Firewall):** Ubuntu Server - nucleul central al aplicației.
+---
 
-* **VM 2 (Atacator):** Kali Linux - utilizat pentru simularea atacurilor (scanări cu Nmap, flood cu Hping3).
+## Cerințe de Sistem
 
-* **VM 3 (Client/Victimă):** Ubuntu Desktop - pentru generarea traficului legitim și verificarea conectivității.
+* **Sistem de Operare:** Distribuție Linux (testat pe Ubuntu Server 22.04/24.04). Proiectul depinde de subsistemul **Netfilter**.
+* **Privilegii:** Utilizator `root` (sau sudo) pentru crearea cozilor NFQUEUE și aplicarea regulilor nftables.
+* **Node.js v18+** și `pnpm` (pentru frontend).
+
+---
+
+## Instalare și Rulare
+
+### 1. Dependențe Kernel și OS
+Se instalează utilitarele necesare pentru interacțiunea cu Netfilter:
+```bash
+sudo apt update
+sudo apt install libnetfilter-queue-dev nftables iptables python3-venv
+```
+
+### 2. Configurare Backend (Python)
+```bash
+git clone https://github.com/EmiCuciu/CuciSec-Lucrare-de-licenta.git
+cd CuciSec-Lucrare-de-licenta
+
+# Creare mediu virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# Instalare dependențe
+pip install -r requirements.txt
+
+# Rulare (Necesită privilegii root)
+sudo venv/bin/python firewall_main.py
+```
+
+### 3. Configurare Frontend (React)
+Într-un terminal separat:
+```bash
+cd frontend-cucisec
+pnpm install
+pnpm run dev
+```
+* Dashboard: `http://localhost:5173`
+* Documentație API: `http://localhost:8000/docs`
+
+---
+
+## API Reference (Sumar)
 
 
 
+| Endpoint | Metodă | Rol |
+| :--- | :--- | :--- |
+| `/api/rules` | GET / POST | Listare / Adăugare regulă L3/L4 (Hot-Reload). |
+| `/api/rules/{id}` | DELETE | Ștergere / Dezactivare regulă. |
+| `/api/logs` | GET | Returnare jurnale paginate cu filtrare. |
+| `/api/blacklist` | GET / POST | Interogare IP-uri banate / Banare manuală. |
+| `/api/stats` | GET | Agregare metrici DB și contoare nftables. |
 
-## Diagrame:

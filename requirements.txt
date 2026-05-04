@@ -1,0 +1,6 @@
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0
+NetfilterQueue>=1.0.0
+scapy>=2.5.0
+loguru>=0.7.0

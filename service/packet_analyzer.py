@@ -1,6 +1,6 @@
 from loguru import logger
 from scapy.layers.inet import IP, TCP, UDP, ICMP
-from scapy.layers.inet6 import IPv6, ICMPv6EchoRequest, ICMPv6EchoReply
+from scapy.layers.inet6 import IPv6
 from scapy.packet import Raw
 
 from domain.models import PacketInfo
@@ -72,14 +72,12 @@ class PacketAnalyzer:
 
         elif ip_layer == IPv6 and packet[IPv6].nh == 58:
             # Protocol 58 in IPv6 means ICMPv6
+            # All ICMPv6 messages share the same header layout: type (byte 0), code (byte 1)
             packet_info.protocol = "ICMPv6"
-
-            if packet.haslayer(ICMPv6EchoRequest):
-                packet_info.port_src = 0  # Code for Echo Request
-                packet_info.port_dst = 128  # Type for Echo Request
-            elif packet.haslayer(ICMPv6EchoReply):
-                packet_info.port_src = 0  # Code for Echo Reply
-                packet_info.port_dst = 129  # Type for Echo Reply
+            raw_icmpv6 = bytes(packet[IPv6].payload)
+            if len(raw_icmpv6) >= 2:
+                packet_info.port_dst = raw_icmpv6[0]  # ICMPv6 type
+                packet_info.port_src = raw_icmpv6[1]  # ICMPv6 code
 
 
         # Extract the payload for DPI  ( Layer 7 )

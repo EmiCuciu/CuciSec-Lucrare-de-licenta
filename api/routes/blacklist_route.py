@@ -1,12 +1,13 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from loguru import logger
 
+from api.dependencies import get_firewall_actions
 from api.schemas import BlacklistResponse, BlacklistCreate
-from domain.models import BlacklistEntry
 from infrastructure.nftables_manager import NftablesManager
 from repository.blacklist_repository import BlacklistRepository
+from service.firewall_actions import FirewallActions
 
 router = APIRouter(prefix="/api/blacklist", tags=["Blacklist"])
 blacklist_repo = BlacklistRepository()
@@ -23,15 +24,15 @@ def get_blacklist():
 
 
 @router.post("/", status_code=201)
-def manual_ban(entry: BlacklistCreate):
+def manual_ban(entry: BlacklistCreate,
+               firewall_actions: FirewallActions = Depends(get_firewall_actions)):
     """
     Manual ban an ip
     :param entry: source ip to ban
+    :param firewall_actions: FirewallActions instance (injected)
     :return: banned ip props
     """
-    blacklist_entry = BlacklistEntry(ip=entry.ip, reason=entry.reason)
-    blacklist_repo.add(blacklist_entry)
-    NftablesManager.ban_ip(entry.ip)
+    firewall_actions.ban_ip(entry.ip, entry.reason)
     logger.debug(f"[BlacklistRoute] manual ban for ip {entry.ip} | reason {entry.reason}")
     return {
         "banned": entry.ip,
@@ -39,12 +40,16 @@ def manual_ban(entry: BlacklistCreate):
     }
 
 @router.delete("/{ip}")
-def unban_ip(ip: str):
+def unban_ip(ip: str,
+             firewall_actions: FirewallActions = Depends(get_firewall_actions)):
     """
     Manual unban an ip
     :param ip: ip to unban
+    :param firewall_actions: FirewallActions instance (injected)
     :return: unbanned prop
     """
     blacklist_repo.delete(ip)
-    logger.debug(f"[BlacklistRoute] unbanning ip: {ip}")
-    return { "unbanned": ip }
+    NftablesManager.unban_ip(ip)
+    firewall_actions.unban_ip(ip)
+    logger.info(f"[BlacklistRoute] unbanned ip: {ip}")
+    return {"unbanned": ip}

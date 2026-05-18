@@ -1,4 +1,5 @@
 import ipaddress
+import threading
 from typing import List, Tuple, Optional
 
 from loguru import logger
@@ -11,6 +12,7 @@ class RuleEngine:
     def __init__(self, rule_repo: RuleRepository = None):
         self._repo = rule_repo or RuleRepository()
         self._rules: List[RuleModel] = []
+        self._lock = threading.RLock()
         self.load_rules()
 
     def load_rules(self):
@@ -18,7 +20,9 @@ class RuleEngine:
         Loads rules from db, one time, and stores them into RAM. (Prevents bottleneck)
         :return: NONE
         """
-        self._rules = self._repo.get_enabled()
+        new_rules = self._repo.get_enabled()
+        with self._lock:
+            self._rules = new_rules
         logger.info(f"[RuleEngine] {len(self._rules)} rules loaded in RAM")
 
     def reload_rules(self):
@@ -38,7 +42,10 @@ class RuleEngine:
         if not packet_info:
             return None, ""
 
-        for rule in self._rules:
+        with self._lock:
+            rules = self._rules
+
+        for rule in rules:
 
             ip_match = RuleEngine.is_ip_match(rule.ip_src, packet_info.ip_src)
 

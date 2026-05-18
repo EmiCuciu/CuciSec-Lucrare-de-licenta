@@ -1,17 +1,19 @@
+import os
 import os.path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse, RedirectResponse
+from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route
 
 
-def create_app(rule_engine=None) -> FastAPI:
+def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
     """
     Factory function
     :param rule_engine: RuleEngine instance
+    :param firewall_actions: FirewallActions instance
     :return: FastApi app configured
     """
 
@@ -22,16 +24,17 @@ def create_app(rule_engine=None) -> FastAPI:
     )
 
     # CORS
+    allowed_origins = os.getenv("CUCISEC_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=allowed_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # store rule_engine to app.state -> Dep Inj
+    # store instances to app.state -> Dep Injection
     app.state.rule_engine = rule_engine
-
+    app.state.firewall_actions = firewall_actions
 
     # add routes
     app.include_router(rules_route.router)
@@ -60,7 +63,7 @@ def create_app(rule_engine=None) -> FastAPI:
         def serve_react_app(catchall: str):
 
             if catchall.startswith("api"):
-                return RedirectResponse(url=f"/{catchall}/")
+                raise HTTPException(status_code=404, detail="API route not found")
 
             file_path = os.path.join(frontend_path, catchall)
             if os.path.isfile(file_path):

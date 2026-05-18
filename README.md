@@ -1,13 +1,11 @@
 # CuciSec – Intrusion Prevention System & Firewall
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-important)](https://www.kernel.org/)
 [![Backend: Python 3.10+](https://img.shields.io/badge/Backend-Python_3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Frontend: React](https://img.shields.io/badge/Frontend-React_19_%7C_Vite-61dafb?logo=react&logoColor=black)](https://react.dev/)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-important)](https://www.kernel.org/)
 [![Status: Academic](https://img.shields.io/badge/Status-Bachelor's_Thesis-green)](#notă-academică)
 
-> **CuciSec** este un sistem hibrid de tip Firewall și Intrusion Prevention System (IPS) (L3–L7). Proiectul face o punte între eficiența spațiului Kernel (rutare și limitare a ratei de pachete) și flexibilitatea spațiului Userspace (analiză profundă și euristică). 
-> Lucrare de licență elaborată la Facultatea de Matematică și Informatică, Universitatea Babeș-Bolyai, Cluj-Napoca (2026).
+> **CuciSec** este un sistem de tip Next Generation Firewall. Proiectul face o punte între eficiența nucleului Kernel și flexibilitatea spațiului Userspace (analiză profundă și euristică). 
 
 ---
 
@@ -27,8 +25,8 @@
 
 CuciSec implementează o arhitectură strictă **Data Plane / Control Plane**:
 
-* **Data Plane (Kernel Space):** Utilizează `nftables` pentru a asigura limitarea de viteză direct la nivelul interfeței de rețea, respingând traficul de tip flood cu un overhead minim. Menține Blacklist folosind seturi hash-table pentru căutare în timp $O(1)$.
-* **Control Plane (Userspace):** Pachetele legitime sau necunoscute sunt transferate din Kernel către Userspace prin mecanismul `NFQUEUE`. Aici, un motor Python procesează pachetele asincron, aplicând reguli statice (L3/L4), capcane (Honeyports) și analiză de conținut (L7 DPI).
+* **Data Plane (Kernel Space):** Utilizează `nftables` pentru filtrarea pachetelor interceptate pe rețea. Menține Blacklist folosind seturi hash-table pentru căutare în timp $O(1)$.
+* **Control Plane (Userspace):** Pachetele legitime sau necunoscute sunt transferate din Kernel către Userspace prin mecanismul `NFQUEUE`. Aici, un motor Python procesează pachetele asincron, aplicând reguli, capcane (Honeyports) și analiză de conținut (L7 DPI).
 
 ```mermaid
 flowchart TD

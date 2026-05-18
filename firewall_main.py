@@ -12,15 +12,18 @@ from repository.blacklist_repository import BlacklistRepository
 from utils.config import Config
 from utils.logger import setup_logger
 
-interceptor: PacketInterceptor = None
-
-def start_api(rule_engine):
+def start_api(rule_engine, firewall_actions, honeyport_engine):
     """
     Runs FastApi on another thread
     :param rule_engine: RuleEngine
+    :param firewall_actions: FirewallActions
+    :param honeyport_engine: HoneyportEngine
     :return: None
     """
-    app = create_app(rule_engine=rule_engine)
+    app = create_app(
+        rule_engine=rule_engine,
+        firewall_actions=firewall_actions,
+    )
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
 
 def main():
@@ -39,6 +42,9 @@ def main():
     nft.setup(script_path)
     logger.info("[BOOT] Kernel initialized (nftables flushed & created)")
 
+    NftablesManager.sync_whitelist(Config.WHITELIST_CIDRS)
+    logger.info(f"[BOOT] Whitelist synced: {len(Config.WHITELIST_CIDRS)} CIDRs to kernel")
+
     blacklist_repo = BlacklistRepository()
     blk_ips = blacklist_repo.get_all_ips()
     ipv4_list = [ip for ip in blk_ips if ":" not in ip]
@@ -46,12 +52,11 @@ def main():
     nft.sync_blacklist(ipv4_list, ipv6_list)
     logger.info(f"[BOOT] Blacklist synced: {len(blk_ips)} IPS from DB to Kernel")
 
-    global interceptor
     interceptor = PacketInterceptor(Config.QUEUE_NUM)
 
     api_thread = threading.Thread(
         target=start_api,
-        args=(interceptor.rule_engine,),
+        args=(interceptor.rule_engine, interceptor.actions),
         daemon=True
     )
     api_thread.start()

@@ -14,7 +14,6 @@ class FirewallActions:
     def __init__(self):
         self._log_repo = LogRepository()
         self._blacklist_repo = BlacklistRepository()
-        self._nft = NftablesManager()
 
         existing = self._blacklist_repo.get_all_ips()
         self._banned_ips: set = set(existing)
@@ -57,10 +56,19 @@ class FirewallActions:
 
         logger.warning(f"[FirewallActions] [BAN] {ip_address} | reason: {reason}")
 
-        self._nft.ban_ip(ip_address)
+        NftablesManager.ban_ip(ip_address)
 
         entry = BlacklistEntry(ip=ip_address, reason=reason)
         self._blacklist_repo.add(entry)
+
+    def unban_ip(self, ip_address: str):
+        """
+        Unban IP
+        :param ip_address: IP address to unban
+        :return: None
+        """
+        self._banned_ips.discard(ip_address)
+        logger.info(f"[FirewallActions] Cache updated: {ip_address} removed")
 
     @staticmethod
     def get_db_writer():

@@ -1,3 +1,4 @@
+import ipaddress
 from typing import Optional, List
 
 from pydantic import BaseModel, field_validator, ConfigDict
@@ -78,6 +79,15 @@ class BlacklistCreate(BaseModel):
     """
     ip: str
     reason: str = "Manual Ban"
+
+    @field_validator("ip")
+    @classmethod
+    def validate_ip(cls, v: str) -> str:
+        try:
+            ipaddress.ip_address(v)
+        except ValueError:
+            raise ValueError(f"Invalid IP address format: '{v}'")
+        return v
 
 class BlacklistResponse(BaseModel):
     """

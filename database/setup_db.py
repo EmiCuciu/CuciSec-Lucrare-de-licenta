@@ -1,6 +1,8 @@
+import os
 import sqlite3
 
-DB_NAME = "database/CuciSec.db"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_NAME = os.path.join(BASE_DIR, "database", "CuciSec.db")
 
 
 def init_db():

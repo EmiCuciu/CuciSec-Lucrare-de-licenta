@@ -2,6 +2,7 @@ from fastapi import Request
 from loguru import logger
 
 from infrastructure.nftables_manager import NftablesManager
+from service.firewall_actions import FirewallActions
 from service.rule_engine import RuleEngine
 
 
@@ -14,6 +15,17 @@ def get_rule_engine(request: Request) -> RuleEngine:
     """
     logger.debug("[Dependency] get_rule_engine called")
     return request.app.state.rule_engine
+
+
+def get_firewall_actions(request: Request) -> FirewallActions:
+    """
+    Returns active FirewallActions instance from app.state
+    :usecase: cache invalidation on unban
+    :param request: request
+    :return: FirewallActions instance
+    """
+    logger.debug("[Dependency] get_firewall_actions called")
+    return request.app.state.firewall_actions
 
 def get_nft_manager() -> NftablesManager:
     """

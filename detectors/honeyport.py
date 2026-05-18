@@ -1,6 +1,3 @@
-import threading
-from typing import List
-
 from loguru import logger
 
 from domain.models import PacketInfo

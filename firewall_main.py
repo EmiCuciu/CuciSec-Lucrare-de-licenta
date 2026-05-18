@@ -12,12 +12,11 @@ from repository.blacklist_repository import BlacklistRepository
 from utils.config import Config
 from utils.logger import setup_logger
 
-def start_api(rule_engine, firewall_actions, honeyport_engine):
+def start_api(rule_engine, firewall_actions):
     """
     Runs FastApi on another thread
     :param rule_engine: RuleEngine
     :param firewall_actions: FirewallActions
-    :param honeyport_engine: HoneyportEngine
     :return: None
     """
     app = create_app(

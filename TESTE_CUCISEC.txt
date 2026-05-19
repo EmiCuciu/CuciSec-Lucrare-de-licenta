@@ -13,6 +13,11 @@ Topologie:
 Tot traficul Attacker -> Client trece OBLIGATORIU prin CuciSec.
 CuciSec intercepteaza fiecare pachet prin NFQUEUE inainte de a-l trimite mai departe.
 
+
+Dashboard: http://localhost:8080
+
+
+
 ----------------------------------------------------------------
 ip addr show — (CuciSec)
 ----------------------------------------------------------------

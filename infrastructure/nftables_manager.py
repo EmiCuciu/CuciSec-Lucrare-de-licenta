@@ -130,7 +130,7 @@ class NftablesManager:
             if process.returncode != 0:
                 logger.error(f"[NftablesManager] sync_whitelist failed: {stderr}")
             else:
-                logger.info(f"[NftablesManager] Whitelist synced: {len(cidrs)} CIDRs → kernel")
+                logger.info(f"[NftablesManager] Whitelist synced: {len(cidrs)} CIDRs to kernel")
         except Exception as e:
             logger.exception(f"[NftablesManager] sync_whitelist error: {e}")
 

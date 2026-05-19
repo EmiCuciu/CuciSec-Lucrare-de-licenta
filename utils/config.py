@@ -26,7 +26,7 @@ class Config:
     ]
 
     # Management API access control — CIDRs allowed to reach port 8000
-    MANAGEMENT_ALLOWED_CIDRS = ["127.0.0.1", "10.0.3.0/24"]
+    MANAGEMENT_ALLOWED_CIDRS = ["127.0.0.1", "10.0.3.0/24", "10.0.2.0/24"]
 
     # Per-port TCP flood thresholds — override the generic MAX_TCP_NEW = 200
     # Lower thresholds for ports where a burst is clearly an attack

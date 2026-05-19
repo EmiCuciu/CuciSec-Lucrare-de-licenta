@@ -47,7 +47,7 @@ export const api = {
 
 
     /// Logs
-    getLogs: (limit = 50) => fetcher<LogEntry[]>(`/logs?limit=${limit}`),
+    getLogs: (limit = 50) => fetcher<LogEntry[]>(`/logs/?limit=${limit}`),
     getLogCounts: () => fetcher<LogCount[]>('/logs/count'),
 
 

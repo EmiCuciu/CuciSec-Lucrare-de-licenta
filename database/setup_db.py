@@ -57,6 +57,20 @@ def init_db():
            )'''
     )
 
+    cursor.execute(
+        '''CREATE TABLE IF NOT EXISTS KernelCounters
+           (
+               id           INTEGER PRIMARY KEY DEFAULT 1,
+               tcp_syn      INTEGER DEFAULT 0,
+               icmp         INTEGER DEFAULT 0,
+               udp          INTEGER DEFAULT 0,
+               blacklist    INTEGER DEFAULT 0,
+               honeyport    INTEGER DEFAULT 0,
+               last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+           )'''
+    )
+    cursor.execute('INSERT OR IGNORE INTO KernelCounters (id) VALUES (1)')
+
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_ip_src ON Logs (ip_src)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON Logs (timestamp)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_logs_protocol ON Logs (protocol)')

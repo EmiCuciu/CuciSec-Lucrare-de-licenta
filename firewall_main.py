@@ -1,5 +1,6 @@
 import os.path
 import threading
+import time
 
 import uvicorn
 from loguru import logger
@@ -9,8 +10,39 @@ from database.setup_db import init_db
 from infrastructure.interceptor import PacketInterceptor
 from infrastructure.nftables_manager import NftablesManager
 from repository.blacklist_repository import BlacklistRepository
+from repository.stats_repository import StatsRepository
+from service.stats_service import StatsService
 from utils.config import Config
 from utils.logger import setup_logger
+
+def start_counter_snapshot_thread(interval: int = 300):
+    """
+    Background thread: every `interval` seconds reads nftables counters,
+    computes the delta from the last snapshot, and persists it to DB.
+    Handles nftables restarts gracefully (delta = current if counters went down).
+    """
+    _ZERO = {"tcp_syn_flood_dropped": 0, "icmp_flood_dropped": 0,
+             "udp_flood_dropped": 0, "blacklist_dropped": 0, "honeyport_hits": 0}
+    previous = dict(_ZERO)
+
+    def _run():
+        nonlocal previous
+        while True:
+            time.sleep(interval)
+            try:
+                nft_json = NftablesManager.get_stats()
+                current  = StatsService.parse_flood_counters(nft_json)
+                delta    = StatsService.compute_delta(current, previous)
+                if any(delta.values()):
+                    StatsRepository.accumulate_kernel_counters(delta)
+                previous = current
+            except Exception as e:
+                logger.error(f"[CounterSnapshot] error: {e}")
+
+    t = threading.Thread(target=_run, daemon=True, name="counter-snapshot")
+    t.start()
+    logger.info(f"[BOOT] Counter snapshot thread started (interval={interval}s)")
+
 
 def start_api(rule_engine, firewall_actions):
     """
@@ -52,6 +84,8 @@ def main():
     logger.info(f"[BOOT] Blacklist synced: {len(blk_ips)} IPS from DB to Kernel")
 
     interceptor = PacketInterceptor(Config.QUEUE_NUM)
+
+    start_counter_snapshot_thread(interval=300)
 
     api_thread = threading.Thread(
         target=start_api,

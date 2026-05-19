@@ -109,7 +109,9 @@ class StatsResponse(BaseModel):
     accepted: int
     dropped: int
     banned_ips: int
-    flood_counters: dict   # brute data from nft -j list ruleset
-    recent_bans: List[dict] = []  # last 5 banned ips with timestamp
+    total_intercepted: int          # userspace logs + cumulative kernel drops
+    flood_counters: dict            # live nftables counters (current session)
+    cumulative_flood_counters: dict # persistent counters accumulated in DB
+    recent_bans: List[dict] = []
 
     model_config = ConfigDict(from_attributes=True)

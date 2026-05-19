@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export function FloodChart() {
     const { data: stats } = useStats();
 
+    const c = stats?.cumulative_flood_counters;
     const chartData = stats ? [
-        { name: "TCP SYN", value: stats.flood_counters.tcp_syn_flood_dropped || 0, color: "#ef4444" },
-        { name: "ICMP", value: stats.flood_counters.icmp_flood_dropped || 0, color: "#f97316" },
-        { name: "UDP", value: stats.flood_counters.udp_flood_dropped || 0, color: "#eab308" },
-        { name: "Blacklist", value: stats.flood_counters.blacklist_dropped || 0, color: "#8b5cf6" },
-        { name: "Honeyport", value: stats.flood_counters.honeyport_hits || 0, color: "#06b6d4" },
+        { name: "TCP SYN",   value: c?.tcp_syn_flood_dropped || 0, color: "#ef4444" },
+        { name: "ICMP",      value: c?.icmp_flood_dropped    || 0, color: "#f97316" },
+        { name: "UDP",       value: c?.udp_flood_dropped     || 0, color: "#eab308" },
+        { name: "Blacklist", value: c?.blacklist_dropped      || 0, color: "#8b5cf6" },
+        { name: "Honeyport", value: c?.honeyport_hits         || 0, color: "#06b6d4" },
     ] : [];
 
     const hasActivity = chartData.some(d => d.value > 0);
@@ -20,7 +21,7 @@ export function FloodChart() {
             <CardHeader className="shrink-0 pb-2">
                 <CardTitle>Kernel Drop Counters</CardTitle>
                 <CardDescription>
-                    nftables hardware counters
+                    Cumulative kernel drop counters (persisted in DB)
                     {!hasActivity && " — no activity detected"}
                 </CardDescription>
             </CardHeader>
@@ -36,7 +37,8 @@ export function FloodChart() {
                                 contentStyle={{
                                     backgroundColor: "hsl(var(--popover))",
                                     borderColor: "hsl(var(--border))",
-                                    borderRadius: "0.5rem"
+                                    borderRadius: "0.5rem",
+                                    color: "#ffffff"
                                 }}
                                 formatter={(value) => [`${value} packets dropped`, ""]}
                             />

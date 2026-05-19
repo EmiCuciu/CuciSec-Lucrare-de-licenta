@@ -17,18 +17,29 @@ def get_stats():
     return: StatsResponse
     """
 
-    db_stats = stats_repo.get_db_stats()
+    db_stats   = stats_repo.get_db_stats()
     recent_bans = stats_repo.get_recent_bans()
 
-    nft_json = NftablesManager.get_stats()
-
+    nft_json       = NftablesManager.get_stats()
     flood_counters = StatsService.parse_flood_counters(nft_json)
+
+    cumulative = stats_repo.get_kernel_counters()
+
+    kernel_only_drops = (
+        cumulative["tcp_syn_flood_dropped"] +
+        cumulative["icmp_flood_dropped"]    +
+        cumulative["udp_flood_dropped"]     +
+        cumulative["blacklist_dropped"]
+    )
+    total_intercepted = db_stats["total_logs"] + kernel_only_drops
 
     return StatsResponse(
         total_logs=db_stats["total_logs"],
         accepted=db_stats["accepted"],
         dropped=db_stats["dropped"],
         banned_ips=db_stats["banned_ips"],
+        total_intercepted=total_intercepted,
         flood_counters=flood_counters,
+        cumulative_flood_counters=cumulative,
         recent_bans=recent_bans
     )

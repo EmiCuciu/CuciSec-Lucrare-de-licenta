@@ -43,7 +43,7 @@ export default function App() {
                 </Routes>
             </BrowserRouter>
 
-            <Toaster richColors theme="dark" position="top-right"/>
+            <Toaster richColors theme="dark" position="bottom-right"/>
         </QueryClientProvider>
     );
 }

@@ -1,4 +1,4 @@
-import {Activity, ServerCrash, ShieldAlert, ShieldCheck} from "lucide-react";
+import {Activity, Network, ServerCrash, ShieldAlert, ShieldCheck} from "lucide-react";
 import {useStats} from "@/hooks/useStats";
 import {MetricCard} from "@/components/dashboard/MetricCard";
 import {TrafficChart} from "@/components/dashboard/TrafficChart";
@@ -30,6 +30,7 @@ export default function DashboardPage() {
     const accepted = stats?.accepted || 0;
     const dropped = stats?.dropped || 0;
     const banned = stats?.banned_ips || 0;
+    const intercepted = stats?.total_intercepted || 0;
 
     return (
         <div className="flex flex-col h-full space-y-6 pb-2">
@@ -41,7 +42,15 @@ export default function DashboardPage() {
             </div>
 
             {/* Row 1: Cards of stats */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 shrink-0">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 shrink-0">
+                <MetricCard
+                    title="Total Intercepted"
+                    value={intercepted.toLocaleString()}
+                    icon={<Network className="h-5 w-5"/>}
+                    trend="Kernel + Userspace"
+                    variant="default"
+                />
+
                 <MetricCard
                     title="Total Analyzed Packets"
                     value={total.toLocaleString()}

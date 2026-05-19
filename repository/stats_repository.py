@@ -47,6 +47,58 @@ class StatsRepository:
         return stats
 
     @staticmethod
+    def get_kernel_counters() -> dict:
+        """
+        Return cumulative kernel drop counters from DB.
+        """
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT tcp_syn, icmp, udp, blacklist, honeyport FROM KernelCounters WHERE id=1")
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        "tcp_syn_flood_dropped": row[0],
+                        "icmp_flood_dropped":    row[1],
+                        "udp_flood_dropped":     row[2],
+                        "blacklist_dropped":     row[3],
+                        "honeyport_hits":        row[4],
+                    }
+        except sqlite3.Error as e:
+            logger.error(f"[StatsRepository] get_kernel_counters error: {e}")
+        return {"tcp_syn_flood_dropped": 0, "icmp_flood_dropped": 0,
+                "udp_flood_dropped": 0, "blacklist_dropped": 0, "honeyport_hits": 0}
+
+    @staticmethod
+    def accumulate_kernel_counters(delta: dict):
+        """
+        Add delta values to the single cumulative KernelCounters row.
+        """
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """UPDATE KernelCounters
+                       SET tcp_syn      = tcp_syn   + ?,
+                           icmp         = icmp      + ?,
+                           udp          = udp       + ?,
+                           blacklist    = blacklist + ?,
+                           honeyport    = honeyport + ?,
+                           last_updated = CURRENT_TIMESTAMP
+                       WHERE id = 1""",
+                    (
+                        delta.get("tcp_syn_flood_dropped", 0),
+                        delta.get("icmp_flood_dropped",    0),
+                        delta.get("udp_flood_dropped",     0),
+                        delta.get("blacklist_dropped",     0),
+                        delta.get("honeyport_hits",        0),
+                    )
+                )
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"[StatsRepository] accumulate_kernel_counters error: {e}")
+
+    @staticmethod
     def get_recent_bans(limit: int = 5) -> List[dict]:
         """
         return last banned ip with timestamp

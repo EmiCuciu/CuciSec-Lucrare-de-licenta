@@ -59,3 +59,15 @@ class StatsService:
             logger.exception(f"[Stats Service] Error while parsing nft-json: {e}")
 
         return counters
+
+    @staticmethod
+    def compute_delta(current: dict, previous: dict) -> dict:
+        """
+        Calculate the difference between two nftables counter snapshots.
+        If a counter decreased (nftables restarted), treat current value as the full delta.
+        """
+        delta = {}
+        for key in current:
+            diff = current[key] - previous.get(key, 0)
+            delta[key] = diff if diff >= 0 else current[key]
+        return delta

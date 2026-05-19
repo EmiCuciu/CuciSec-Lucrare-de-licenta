@@ -1,12 +1,41 @@
+import ipaddress
 import os
 import os.path
 
 from fastapi import FastAPI, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse
+from starlette.requests import Request
+from starlette.responses import FileResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route
+from utils.config import Config
+
+
+class ManagementAccessMiddleware(BaseHTTPMiddleware):
+    """Blocks requests to the management API from untrusted networks."""
+
+    _DENY = JSONResponse(
+        status_code=403,
+        content={"detail": "Access denied: management API is restricted to trusted networks"},
+    )
+
+    def __init__(self, app, allowed_cidrs: list[str]) -> None:
+        super().__init__(app)
+        self._networks = [ipaddress.ip_network(c, strict=False) for c in allowed_cidrs]
+
+    async def dispatch(self, request: Request, call_next):
+        client = request.client
+        if client is None:
+            return self._DENY
+        try:
+            addr = ipaddress.ip_address(client.host)
+        except ValueError:
+            return self._DENY
+        if not any(addr in net for net in self._networks):
+            return self._DENY
+        return await call_next(request)
 
 
 def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
@@ -31,6 +60,9 @@ def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Management network ACL — added after CORS so it runs first (Starlette wraps in reverse)
+    app.add_middleware(ManagementAccessMiddleware, allowed_cidrs=Config.MANAGEMENT_ALLOWED_CIDRS)
 
     # store instances to app.state -> Dep Injection
     app.state.rule_engine = rule_engine

@@ -34,6 +34,10 @@ table inet cucisec {
     tcp dport 22 ct state { new, established, related } accept
     ct state established,related accept
     ct state invalid drop
+
+    # Management API (port 8000) — allow only from localhost and LAN, block all others
+    ip saddr { 127.0.0.0/8, 10.0.3.0/24 } tcp dport 8000 ct state { new, established, related } accept
+    tcp dport 8000 counter drop comment "mgmt_api_block"
   }
 
 

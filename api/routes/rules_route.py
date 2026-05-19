@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 from api.dependencies import get_rule_engine
-from api.schemas import RuleResponse, RuleCreate
+from api.schemas import RuleResponse, RuleCreate, RuleUpdate
 from domain.models import RuleModel
 from repository.rule_repository import RuleRepository
 from service.rule_engine import RuleEngine
@@ -68,7 +68,7 @@ def create_rule(
     )
 
 
-@router.delete("/{rule_id}", status_code=204)
+@router.delete("/{rule_id}", status_code=200)
 def delete_rule(
         rule_id: int,
         rule_engine: RuleEngine = Depends(get_rule_engine)):
@@ -84,8 +84,51 @@ def delete_rule(
         raise HTTPException(status_code=404, detail=f"Rule {rule_id} not found")
 
     logger.debug(f"[RuleRoute] rule {rule_id} deleted")
-
     rule_engine.reload_rules()
+    return {"message": f"Rule {rule_id} deleted"}
+
+
+@router.put("/{rule_id}", response_model=RuleResponse)
+def update_rule(
+        rule_id: int,
+        rule_data: RuleUpdate,
+        rule_engine: RuleEngine = Depends(get_rule_engine)):
+    """
+    Update an existing rule and hot-reload it in RAM
+    :param rule_id: id rule to update
+    :param rule_data: RuleUpdate
+    :param rule_engine: RuleEngine dependency
+    :return: RuleResponse
+    """
+    updated_rule = RuleModel(
+        ip_src=rule_data.ip_src,
+        port=rule_data.port,
+        protocol=rule_data.protocol,
+        action=rule_data.action,
+        description=rule_data.description,
+        enabled=rule_data.enabled,
+        zone=rule_data.zone
+    )
+
+    success = rule_repo.update(rule_id, updated_rule)
+
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Rule {rule_id} not found")
+
+    logger.debug(f"[RuleRoute] rule {rule_id} updated")
+    rule_engine.reload_rules()
+
+    updated_rule.id = rule_id
+    return RuleResponse(
+        id=rule_id,
+        ip_src=updated_rule.ip_src,
+        port=updated_rule.port,
+        protocol=updated_rule.protocol,
+        action=updated_rule.action,
+        description=updated_rule.description,
+        enabled=updated_rule.enabled,
+        zone=updated_rule.zone
+    )
 
 
 @router.patch("/{rule_id}/toggle", response_model=dict)

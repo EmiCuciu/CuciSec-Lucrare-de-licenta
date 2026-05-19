@@ -5,7 +5,9 @@ export const useRules = () => {
     return useQuery({
         queryKey: ["rules"],
         queryFn: api.getRules,
-        staleTime: 5000,
+        refetchInterval: 5000,
+        refetchIntervalInBackground: false,
+        staleTime: 3000,
         refetchOnWindowFocus: false
     });
 };
@@ -25,6 +27,8 @@ export const useBlacklist = () => {
     return useQuery({
         queryKey: ["blacklist"],
         queryFn: api.getBlacklist,
+        refetchInterval: 5000,
+        refetchIntervalInBackground: false,
         staleTime: 3000,
         refetchOnWindowFocus: false
     });

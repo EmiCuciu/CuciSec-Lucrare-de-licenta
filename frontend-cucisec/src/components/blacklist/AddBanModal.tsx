@@ -18,10 +18,13 @@ export function AddBanModal() {
         mutationFn: () => api.banIp(ip, reason || "Manual Ban"),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["blacklist"] });
-            toast.error(`${ip} banned`);
+            toast.success(`${ip} banned`);
             setOpen(false);
             setIp("");
             setReason("");
+        },
+        onError: (error: Error) => {
+            toast.error(`Failed to ban ${ip}: ${error.message}`);
         }
     });
 

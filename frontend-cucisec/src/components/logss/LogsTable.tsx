@@ -24,9 +24,12 @@ export function LogsTable() {
 
     const banMutation = useMutation({
         mutationFn: ({ ip }: { ip: string }) => api.banIp(ip, "Manual Ban from Logs"),
-        onSuccess: async () => {
+        onSuccess: async (_, { ip }) => {
             await queryClient.invalidateQueries({ queryKey: ["blacklist"] });
-            toast.error("IP banned successfully");
+            toast.success(`${ip} banned successfully`);
+        },
+        onError: (error: Error) => {
+            toast.error(`Failed to ban IP: ${error.message}`);
         }
     });
 

@@ -17,7 +17,7 @@ export default function DashboardPage() {
             <div className="flex h-full items-center justify-center flex-col gap-4">
                 <ServerCrash className="h-12 w-12 text-destructive"/>
                 <div className="text-destructive font-semibold text-lg">
-                    ERROR: Cannot connect to FastAPI (Port 8000).
+                    ERROR: Cannot connect to FastAPI.
                 </div>
                 <p className="text-muted-foreground">
                     Assure that backend is working

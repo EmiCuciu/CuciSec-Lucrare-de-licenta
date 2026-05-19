@@ -1,6 +1,6 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Rectangle } from "recharts";
-import { useStats } from "@/hooks/useStats";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {Bar, BarChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import {useStats} from "@/hooks/useStats";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 
 export function FloodChart() {
     const { data: stats } = useStats();
@@ -38,7 +38,7 @@ export function FloodChart() {
                                     backgroundColor: "hsl(var(--popover))",
                                     borderColor: "hsl(var(--border))",
                                     borderRadius: "0.5rem",
-                                    color: "#ffffff"
+                                    color: "#ffffff",
                                 }}
                                 formatter={(value) => [`${value} packets dropped`, ""]}
                             />

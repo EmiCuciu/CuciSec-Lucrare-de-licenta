@@ -26,7 +26,8 @@ async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
         throw new Error(errorMessage);
     }
 
-    return response.json();
+    const text = await response.text();
+    return (text ? JSON.parse(text) : null) as T;
 }
 
 export const api = {
@@ -40,6 +41,11 @@ export const api = {
     }),
     deleteRule: (id: number) => fetcher<{ message: string }>(`/rules/${id}`, {
         method: 'DELETE'
+    }),
+    updateRule: (id: number, rule: Omit<Rule, "id">) => fetcher<Rule>(`/rules/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(rule)
     }),
     toggleRule: (id: number, enabled: number) => fetcher<Rule>(`/rules/${id}/toggle?enabled=${enabled}`, {
         method: 'PATCH'

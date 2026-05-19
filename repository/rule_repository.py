@@ -129,6 +129,27 @@ class RuleRepository:
             return False
 
     @staticmethod
+    def update(rule_id: int, rule: RuleModel) -> bool:
+        """
+        Update all fields of a rule by id
+        :param rule_id: rule to update
+        :param rule: new rule data
+        :return: boolean
+        """
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE Rules SET ip_src=?, port=?, protocol=?, action=?, description=?, enabled=?, zone=? WHERE id=?",
+                    (rule.ip_src, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone, rule_id)
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+        except sqlite3.Error as e:
+            logger.error(f"[RuleRepository] update error: {e}")
+            return False
+
+    @staticmethod
     def toggle(rule_id: int, enabled: int) -> bool:
         """
         Enable or disable a rule

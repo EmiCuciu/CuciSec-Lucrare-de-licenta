@@ -14,10 +14,6 @@ class FloodEngine:
     Two-layer protection:
       - Kernel layer: nftables rate limits (fast, before NFQUEUE)
       - Userspace layer: per-IP packet counting in TIME_WINDOW seconds
-
-    Whitelisted CIDRs (Config.WHITELIST_CIDRS) are never flood-banned.
-    Per-port TCP thresholds (Config.PER_PORT_TCP_THRESHOLDS) override the
-    generic MAX_TCP_NEW for sensitive ports (SSH, RDP, DB ports).
     """
 
     def __init__(self):

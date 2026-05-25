@@ -6,7 +6,7 @@ export function TrafficChart() {
     const {data = [], isLoading, isError} = useLogCounts();
 
     return (
-        <Card className="col-span-1 lg:col-span-2 flex flex-col h-full overflow-hidden">
+        <Card className="flex flex-col h-full overflow-hidden">
             <CardHeader className="shrink-0 pb-2">
                 <CardTitle>Traffic (Last 30 Minutes)</CardTitle>
                 <CardDescription>Accepted vs Dropped Packets</CardDescription>

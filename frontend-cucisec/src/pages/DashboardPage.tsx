@@ -4,6 +4,7 @@ import {MetricCard} from "@/components/dashboard/MetricCard";
 import {TrafficChart} from "@/components/dashboard/TrafficChart";
 import {DashboardSkeleton} from "@/components/skeletons/DashboardSkeleton.tsx";
 import {FloodChart} from "@/components/dashboard/FloodChart.tsx";
+import {ThreatDetections} from "@/components/dashboard/ThreatDetections.tsx";
 
 export default function DashboardPage() {
     const {data: stats, isLoading, isError} = useStats();
@@ -37,14 +38,13 @@ export default function DashboardPage() {
             <div className="shrink-0">
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
                 <p className="text-muted-foreground">
-                    Real-time statistics from nftables and detection module.
+                    Real-Time Statistics
                 </p>
             </div>
 
-            {/* Row 1: Cards of stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 shrink-0">
                 <MetricCard
-                    title="Total Intercepted"
+                    title="Total Intercepted Packets"
                     value={intercepted.toLocaleString()}
                     icon={<Network className="h-5 w-5"/>}
                     trend="Kernel + Userspace"
@@ -56,36 +56,41 @@ export default function DashboardPage() {
                     value={total.toLocaleString()}
                     icon={<Activity className="h-5 w-5"/>}
                     trend="Active monitoring"
-                    variant="default"
+                    variant="info"
                 />
 
                 <MetricCard
-                    title="Accepted packets"
+                    title="Accepted Packets"
                     value={accepted.toLocaleString()}
                     icon={<ShieldCheck className="h-5 w-5"/>}
                     variant="success"
                 />
 
                 <MetricCard
-                    title="Dropped packets"
+                    title="Dropped Packets"
                     value={dropped.toLocaleString()}
                     icon={<ShieldAlert className="h-5 w-5"/>}
                     variant="danger"
                 />
 
                 <MetricCard
-                    title="IPs in Blacklist"
+                    title="Blacklist"
                     value={banned.toLocaleString()}
                     icon={<ServerCrash className="h-5 w-5"/>}
-                    trend="Auto/Manual Block"
+                    trend="Auto/Manual Banned IPs"
                     variant="warning"
                 />
             </div>
 
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 flex-1 min-h-0">
-                <TrafficChart/>
+            <div className="flex flex-col gap-4 flex-1 min-h-0">
+                <div className="flex-1 min-h-0">
+                    <TrafficChart/>
+                </div>
 
-                <FloodChart/>
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 shrink-0">
+                    <FloodChart/>
+                    <ThreatDetections/>
+                </div>
             </div>
         </div>
     );

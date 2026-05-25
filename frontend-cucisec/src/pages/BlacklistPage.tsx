@@ -7,7 +7,7 @@ export default function BlacklistPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Blacklist</h1>
-                    <p className="text-muted-foreground">Auto and manually banned IPs</p>
+                    <p className="text-muted-foreground">Banned IP addresses</p>
                 </div>
                 <AddBanModal />
             </div>

@@ -27,11 +27,10 @@ export function FloodChart() {
 
     const c = stats?.cumulative_flood_counters;
     const chartData = stats ? [
-        { name: "TCP SYN",   value: c?.tcp_syn_flood_dropped || 0, color: "#ef4444" },
-        { name: "ICMP",      value: c?.icmp_flood_dropped    || 0, color: "#f97316" },
-        { name: "UDP",       value: c?.udp_flood_dropped     || 0, color: "#eab308" },
+        { name: "TCP SYN",   value: c?.tcp_syn_flood_dropped || 0, color: "#06b6d4" },
+        { name: "ICMP",      value: c?.icmp_flood_dropped    || 0, color: "#ffd500" },
+        { name: "UDP",       value: c?.udp_flood_dropped     || 0, color: "#ff6a00" },
         { name: "Blacklist", value: c?.blacklist_dropped      || 0, color: "#8b5cf6" },
-        { name: "Honeyport", value: c?.honeyport_hits         || 0, color: "#06b6d4" },
     ] : [];
 
     return (

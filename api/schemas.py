@@ -113,6 +113,7 @@ class StatsResponse(BaseModel):
     total_intercepted: int          # userspace logs + cumulative kernel drops
     flood_counters: dict            # live nftables counters (current session)
     cumulative_flood_counters: dict # persistent counters accumulated in DB
+    dpi_drops: int = 0
     recent_bans: List[dict] = []
 
     model_config = ConfigDict(from_attributes=True)

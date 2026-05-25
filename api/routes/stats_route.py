@@ -19,6 +19,7 @@ def get_stats():
 
     db_stats = stats_repo.get_db_stats()
     recent_bans = stats_repo.get_recent_bans()
+    dpi_drops = stats_repo.get_dpi_drops()
 
     nft_json = NftablesManager.get_stats()
     flood_counters = StatsService.parse_flood_counters(nft_json)
@@ -41,5 +42,6 @@ def get_stats():
         total_intercepted=total_intercepted,
         flood_counters=flood_counters,
         cumulative_flood_counters=cumulative,
+        dpi_drops=dpi_drops,
         recent_bans=recent_bans
     )

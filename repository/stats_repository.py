@@ -99,6 +99,20 @@ class StatsRepository:
             logger.error(f"[StatsRepository] accumulate_kernel_counters error: {e}")
 
     @staticmethod
+    def get_dpi_drops() -> int:
+        """
+        Return total count of DPI-detected drops from Logs table.
+        """
+        try:
+            with sqlite3.connect(DB_NAME) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM Logs WHERE action_taken LIKE 'DPI_DROP%'")
+                return cursor.fetchone()[0]
+        except sqlite3.Error as e:
+            logger.error(f"[StatsRepository] get_dpi_drops error: {e}")
+        return 0
+
+    @staticmethod
     def get_recent_bans(limit: int = 5) -> List[dict]:
         """
         return last banned ip with timestamp

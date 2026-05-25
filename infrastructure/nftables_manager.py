@@ -197,4 +197,4 @@ class NftablesManager:
 
         t = threading.Thread(target=_run, daemon=True, name="counter-snapshot")
         t.start()
-        logger.info(f"[BOOT] Counter snapshot thread started (interval={interval}s)")
+        # logger.info(f"[BOOT] Counter snapshot thread started (interval={interval}s)")

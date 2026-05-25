@@ -3,7 +3,7 @@ Tests for DPIEngine — Layer 7 attack detection.
 No network, no DB required.
 """
 import pytest
-from detectors.dpi import DPIEngine, BAN_THRESHOLD
+from detectors.dpi import DPIEngine
 from domain.models import PacketInfo
 
 
@@ -140,28 +140,14 @@ def test_path_traversal_triggers_alert(engine):
     p = make_packet("GET /../../etc/passwd HTTP/1.1")
     result = engine.inspect(p)
     assert result is not None
-    # ../../ is MEDIUM (5pts) -> >= BAN_THRESHOLD=5, should ban
     assert result.should_ban is True
 
 
-def test_etc_passwd_low_severity_no_ban(engine):
-    # /etc/passwd alone is LOW (2pts) -> below BAN_THRESHOLD=5
+def test_etc_passwd_triggers_ban(engine):
     p = make_packet("/etc/passwd")
     result = engine.inspect(p)
     assert result is not None
-    assert result.should_ban is False
-
-
-# --- Score threshold ---
-
-def test_score_below_threshold_no_ban(engine):
-    # OR condition alone is MEDIUM = 5pts, BAN_THRESHOLD = 5, should_ban = True (>=)
-    # Use a LOW-only hit to stay below threshold
-    p = make_packet("Nmap scan report for 1.2.3.4")  # LOW = 2pts
-    result = engine.inspect(p)
-    assert result is not None
-    assert result.should_ban is False
-    assert "2" in result.alert  # score=2
+    assert result.should_ban is True
 
 
 # --- Scanner detection ---

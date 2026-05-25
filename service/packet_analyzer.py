@@ -82,12 +82,12 @@ class PacketAnalyzer:
 
         # Extract the payload for DPI  ( Layer 7 )
         if packet.haslayer(Raw):
-            try:
-                # try to make readable text ( for SQLI and XSS attacks )
-                packet_info.payload = packet[Raw].load.decode('utf-8', errors='ignore')
-            except Exception as e:
-                # if it is binary format, keep it as string representation of bytes (file transfer, malware, etc.)
-                packet_info.payload = str(packet[Raw].load)
-                logger.exception(f"{e}")
+            raw_bytes = packet[Raw].load
+            packet_info.payload = raw_bytes.decode('utf-8', errors='ignore')
+        else:
+            if packet.haslayer(TCP):
+                raw_packet_bytes = bytes(packet[TCP].payload)
+                if raw_packet_bytes:
+                    packet_info.payload = raw_packet_bytes.decode('utf-8', errors='ignore')
 
         return packet_info

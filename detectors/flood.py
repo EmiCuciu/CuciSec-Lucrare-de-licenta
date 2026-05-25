@@ -27,12 +27,12 @@ class FloodEngine:
         self.ip_history = defaultdict(list)
         self._lock = threading.Lock()
 
-        self.TIME_WINDOW     = 12.0    # sliding window in seconds
-        self.MAX_TCP_NEW     = 200
-        self.MAX_UDP_NEW     = 250
-        self.MAX_ICMP        = 30
+        self.TIME_WINDOW = 12.0    # sliding window in seconds
+        self.MAX_TCP_NEW = 200
+        self.MAX_UDP_NEW = 250
+        self.MAX_ICMP = 30
         self.CLEANUP_INTERVAL = 60.0
-        self.MAX_TRACKED_IPS  = 50_000
+        self.MAX_TRACKED_IPS = 50_000
 
         self.last_cleanup = time.time()
 
@@ -90,8 +90,8 @@ class FloodEngine:
             self.ip_history[ip].append(current_time)
             count = len(self.ip_history[ip])
 
-        proto  = packet_info.protocol
-        port   = packet_info.port_dst
+        proto = packet_info.protocol
+        port = packet_info.port_dst
 
         if proto == "TCP":
             threshold = Config.PER_PORT_TCP_THRESHOLDS.get(port, self.MAX_TCP_NEW)

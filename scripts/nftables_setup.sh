@@ -46,8 +46,12 @@ table inet cucisec {
 
     type filter hook forward priority 0; policy accept;
 
+    # instant drop for all IPs from blacklist
+    ip saddr @blacklist_v4 counter drop comment "blacklist_drop"
+    ip6 saddr @blacklist_v6 counter drop comment "blacklist_drop"
+
     # HTTP traffic — always sent to userspace for DPI
-    tcp dport { 80, 8080 } counter queue num 1
+    tcp dport { 80, 8080, 8000, 8443 } counter queue num 1
 
     # allow already-established flows to pass without re-inspection
     ct state established,related counter accept
@@ -55,9 +59,6 @@ table inet cucisec {
     # for malformed/invalid packets
     ct state invalid counter drop
 
-    # instant drop for all IPs from blacklist (before whitelist — explicit ban overrides trust)
-    ip saddr @blacklist_v4 counter drop comment "blacklist_drop"
-    ip6 saddr @blacklist_v6 counter drop comment "blacklist_drop"
 
     # whitelist bypass: trusted internal subnets skip flood rate limits
     ip saddr @whitelist_v4 counter queue num 1 comment "whitelist_bypass"

@@ -1,6 +1,26 @@
 import {Bar, BarChart, Rectangle, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {useStats} from "@/hooks/useStats";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div
+                className="p-2 rounded-lg"
+                style={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    color: "hsl(var(--popover-foreground))",
+                }}
+            >
+                <p className="label">{`${label} : ${payload[0].value} packets dropped`}</p>
+            </div>
+        );
+    }
+
+    return null;
+};
+
 
 export function FloodChart() {
     const { data: stats } = useStats();
@@ -14,16 +34,10 @@ export function FloodChart() {
         { name: "Honeyport", value: c?.honeyport_hits         || 0, color: "#06b6d4" },
     ] : [];
 
-    const hasActivity = chartData.some(d => d.value > 0);
-
     return (
         <Card className="flex flex-col h-full overflow-hidden">
             <CardHeader className="shrink-0 pb-2">
                 <CardTitle>Kernel Drop Counters</CardTitle>
-                <CardDescription>
-                    Cumulative kernel drop counters based on IP address
-                    {!hasActivity && " — no activity detected"}
-                </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 p-6 pt-0">
                 <div className="h-full w-full mt-2">
@@ -34,13 +48,8 @@ export function FloodChart() {
                             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                                    tickLine={false} axisLine={false} />
                             <Tooltip
-                                contentStyle={{
-                                    backgroundColor: "hsl(var(--popover))",
-                                    borderColor: "hsl(var(--border))",
-                                    borderRadius: "0.5rem",
-                                    color: "#ffffff",
-                                }}
-                                formatter={(value) => [`${value} packets dropped`, ""]}
+                                cursor={{fill: 'hsl(var(--accent))', radius: 4}}
+                                content={<CustomTooltip />}
                             />
 
                             <Bar

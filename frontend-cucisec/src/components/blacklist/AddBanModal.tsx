@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { BlacklistEntry } from "@/types/api";
 
 export function AddBanModal() {
     const [open, setOpen] = useState(false);
@@ -16,8 +17,10 @@ export function AddBanModal() {
 
     const banMutation = useMutation({
         mutationFn: () => api.banIp(ip, reason || "Manual Ban"),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ["blacklist"] });
+        onSuccess: (newEntry) => {
+            queryClient.setQueryData<BlacklistEntry[]>(["blacklist"], (oldData) => {
+                return oldData ? [...oldData, newEntry] : [newEntry];
+            });
             toast.success(`${ip} banned`);
             setOpen(false);
             setIp("");

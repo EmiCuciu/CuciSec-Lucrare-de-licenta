@@ -107,11 +107,9 @@ T2 — FLOOD ENGINE
 ================================================================
 
 Teste grele:
-   hping3 -S ://10.0.3.5 -p 80 --flood --rand-source
+   sudo hping3 -S -p 80 --flood --rand-source 10.0.3.5 
 
-   hping3 -S ://10.0.3.5 -p ++20 -8 20-100
-
-   hping3 -S ://10.0.3.5 -p 80
+   sudo hping3 -S -p 80 --flood 10.0.3.5
 
 
 

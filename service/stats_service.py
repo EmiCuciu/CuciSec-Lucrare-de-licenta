@@ -17,7 +17,10 @@ class StatsService:
             "tcp_syn_flood_dropped": 0,
             "udp_flood_dropped": 0,
             "blacklist_dropped": 0,
-            "honeyport_hits": 0
+            "honeyport_hits": 0,
+            "global_syn_flood_dropped": 0,
+            "global_udp_flood_dropped": 0,
+            "global_icmp_flood_dropped": 0,
         }
 
         try:
@@ -44,11 +47,11 @@ class StatsService:
                 if packets == 0:
                     continue
 
-                if comment == "icmp_flood":
+                if comment in ("icmp_flood", "global_icmp_flood", "dst_icmp_flood"):
                     counters["icmp_flood_dropped"] += packets
-                elif comment == "tcp_syn_flood":
+                elif comment in ("tcp_syn_flood", "global_syn_flood", "dst_syn_flood"):
                     counters["tcp_syn_flood_dropped"] += packets
-                elif comment == "udp_flood":
+                elif comment in ("udp_flood", "global_udp_flood", "dst_udp_flood"):
                     counters["udp_flood_dropped"] += packets
                 elif comment == "blacklist_drop":
                     counters["blacklist_dropped"] += packets

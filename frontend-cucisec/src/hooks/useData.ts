@@ -27,9 +27,9 @@ export const useBlacklist = () => {
     return useQuery({
         queryKey: ["blacklist"],
         queryFn: api.getBlacklist,
-        refetchInterval: 5000,
+        refetchInterval: 3000,
         refetchIntervalInBackground: false,
-        staleTime: 3000,
+        staleTime: 2500,
         refetchOnWindowFocus: false
     });
 };

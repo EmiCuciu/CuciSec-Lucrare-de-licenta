@@ -28,9 +28,9 @@ class StatsRepository:
                 cursor = conn.cursor()
 
                 cursor.execute("""
-                               SELECT COUNT(*)                                                           as total,
-                                        SUM(CASE WHEN action_taken LIKE 'ACCEPT%' THEN 1 ELSE 0 END)     as accepted,
-                                        SUM(CASE WHEN action_taken NOT LIKE 'ACCEPT%' THEN 1 ELSE 0 END) as dropped
+                               SELECT COUNT(*)                                                                    as total,
+                                        COALESCE(SUM(CASE WHEN action_taken LIKE 'ACCEPT%' THEN 1 ELSE 0 END), 0) as accepted,
+                                        COALESCE(SUM(CASE WHEN action_taken NOT LIKE 'ACCEPT%' THEN 1 ELSE 0 END), 0) as dropped
                                FROM Logs
                                """)
                 row = cursor.fetchone()

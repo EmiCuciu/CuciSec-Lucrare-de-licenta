@@ -72,11 +72,16 @@ class PacketInterceptor:
                     f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
         # Flood Engine
-        flood_alert = self.flood.inspect(packet_info)
-        if flood_alert:
-            logger.warning(f"[INTERCEPTOR] DROP & BAN: FLOOD - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
-            self.actions.drop_packet(packet, packet_info, f"FLOOD_BAN_DROP: {flood_alert}")
-            self.actions.ban_ip(packet_info.ip_src, reason=flood_alert)
+        flood_result = self.flood.inspect(packet_info)
+        if flood_result:
+            alert, should_ban = flood_result
+            if should_ban:
+                logger.warning(f"[INTERCEPTOR] DROP & BAN: FLOOD - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
+                self.actions.drop_packet(packet, packet_info, f"FLOOD_BAN_DROP: {alert}")
+                self.actions.ban_ip(packet_info.ip_src, reason=alert)
+            else:
+                logger.warning(f"[INTERCEPTOR] DROP (no ban — rand-source): {alert}")
+                self.actions.drop_packet(packet, packet_info, f"FLOOD_DROP: {alert}")
             return
 
         # Rule Engine

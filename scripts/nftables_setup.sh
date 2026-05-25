@@ -27,9 +27,18 @@ table inet cucisec {
 
 
 
-  # dynamic sets -> flood tracking per-IP, auto-expires after 1 minute
+  # dynamic sets -> flood tracking per-SOURCE-IP, auto-expires after 1 minute
   set flood_v4 { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
   set flood_v6 { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
+
+  # dynamic sets -> flood tracking per-DESTINATION-IP (defeats --rand-source)
+  # each destination IP gets its own rate bucket per protocol
+  set flood_dst_syn_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
+  set flood_dst_syn_v6  { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
+  set flood_dst_udp_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
+  set flood_dst_udp_v6  { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
+  set flood_dst_icmp_v4 { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
+  set flood_dst_icmp_v6 { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
 
 
 
@@ -60,7 +69,7 @@ table inet cucisec {
     type filter hook forward priority 0; policy accept;
 
 ###########################################################################
-    ##### LEVEL 1  -   instant drop for all IPs from blacklist
+    #####    instant drop for all IPs from blacklist
 
     ip saddr @blacklist_v4 counter drop comment "blacklist_drop"
     ip6 saddr @blacklist_v6 counter drop comment "blacklist_drop"
@@ -69,41 +78,67 @@ table inet cucisec {
 
 
 ###########################################################################
-    ##### LEVEL 2 -     for DDOS (rand-source)
+    #####    for malformed packets
 
-    # TCP SYN global — rand-source SYN flood
-    tcp flags syn limit rate over 500/second burst 1000 packets counter drop comment "global_syn_flood"
-
-    # UDP global —  rand-source UDP  flood
-    ip protocol udp limit rate over 1000/second burst 2000 packets counter drop comment "global_udp_flood"
-    ip6 nexthdr udp limit rate over 1000/second burst 2000 packets counter drop comment "global_udp_flood"
-
-    # ICMP global — non-per-IP
-    ip protocol icmp limit rate over 30/second burst 60 packets counter drop comment "global_icmp_flood"
-    ip6 nexthdr icmpv6 limit rate over 30/second burst 60 packets counter drop comment "global_icmp_flood"
+    ct state invalid counter drop comment "invalid_packets_drop"
 ###########################################################################
 
 
 
 ###########################################################################
-    ##### LEVEL 3 -     HTTP traffic — always sent to userspace for DPI
+    #####    for DDOS (rand-source)
+
+    # TCP SYN global — rand-source SYN flood (reduced: 200→50/s)
+    tcp flags syn limit rate over 50/second burst 100 packets counter drop comment "global_syn_flood"
+
+    # UDP global —  rand-source UDP flood (reduced: 300→100/s)
+    ip protocol udp limit rate over 100/second burst 200 packets counter drop comment "global_udp_flood"
+    ip6 nexthdr udp limit rate over 100/second burst 200 packets counter drop comment "global_udp_flood"
+
+    # ICMP global — non-per-IP (reduced: 20→10/s)
+    ip protocol icmp limit rate over 10/second burst 20 packets counter drop comment "global_icmp_flood"
+    ip6 nexthdr icmpv6 limit rate over 10/second burst 20 packets counter drop comment "global_icmp_flood"
+###########################################################################
+
+
+
+###########################################################################
+    #####    per-DESTINATION flood detection (defeats --rand-source)
+    #####    tracks rate TO a specific host regardless of source IP
+
+    # SYN flood to destination: max 30 new connections/sec to any single host
+    tcp flags syn ip daddr != 0.0.0.0 update @flood_dst_syn_v4 { ip daddr limit rate over 30/second burst 50 packets } counter drop comment "dst_syn_flood"
+    tcp flags syn ip6 daddr != :: update @flood_dst_syn_v6 { ip6 daddr limit rate over 30/second burst 50 packets } counter drop comment "dst_syn_flood"
+
+    # UDP flood to destination: max 80 packets/sec to any single host
+    ip protocol udp ip daddr != 0.0.0.0 update @flood_dst_udp_v4 { ip daddr limit rate over 80/second burst 150 packets } counter drop comment "dst_udp_flood"
+    ip6 nexthdr udp ip6 daddr != :: update @flood_dst_udp_v6 { ip6 daddr limit rate over 80/second burst 150 packets } counter drop comment "dst_udp_flood"
+
+    # ICMP flood to destination: max 8 packets/sec to any single host
+    ip protocol icmp ip daddr != 0.0.0.0 update @flood_dst_icmp_v4 { ip daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
+    ip6 nexthdr icmpv6 ip6 daddr != :: update @flood_dst_icmp_v6 { ip6 daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
+###########################################################################
+
+
+
+###########################################################################
+    #####    HTTP traffic — always sent to userspace for DPI
+
     tcp dport { 80, 8080, 8000, 8443 } counter queue num 1
 ###########################################################################
 
 
 
 ###########################################################################
-    ##### LEVEL 4 -     allow already-established flows to pass without re-inspection
+    #####    allow already-established flows to pass without re-inspection
+
     ct state established,related counter accept
-
-    # for malformed/invalid packets
-    ct state invalid counter drop
 ###########################################################################
 
 
-
 ###########################################################################
-    ###### LEVEL 5 -     whitelist bypass: trusted internal subnets skip flood rate limits
+    #####    whitelist bypass: trusted internal subnets skip flood rate limits
+
     ip saddr @whitelist_v4 counter queue num 1 comment "whitelist_bypass"
     ip6 saddr @whitelist_v6 counter queue num 1 comment "whitelist_bypass"
 ###########################################################################
@@ -111,7 +146,7 @@ table inet cucisec {
 
 
 ###########################################################################
-    ###### LEVEL 6 -     per-IP flood detection rate-limiting
+    #####    per-IP flood detection rate-limiting
 
     # ICMP FLOOD: max 5 packets/sec, burst 10
     ip protocol icmp limit rate over 5/second burst 10 packets counter drop comment "icmp_flood"
@@ -129,7 +164,7 @@ table inet cucisec {
 
 
 ###########################################################################
-    ##### LEVEL 7 -      honeyport sent to userspace for ban decision
+    #####    honeyport sent to userspace for ban decision
 
     tcp dport @honey_ports counter queue num 1 comment "honeyport_drop"
 ###########################################################################

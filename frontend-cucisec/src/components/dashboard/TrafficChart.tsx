@@ -8,8 +8,8 @@ export function TrafficChart() {
     return (
         <Card className="flex flex-col h-full overflow-hidden">
             <CardHeader className="shrink-0 pb-2">
-                <CardTitle>Traffic (Last 30 Minutes)</CardTitle>
-                <CardDescription>Accepted vs Dropped Packets</CardDescription>
+                <CardTitle>Traffic (Last 60 Minutes)</CardTitle>
+                <CardDescription>Accepted and Dropped Packets</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 p-6 pt-0">
                 {isLoading ? (

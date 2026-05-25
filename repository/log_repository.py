@@ -112,7 +112,7 @@ class LogRepository:
                                       SUM(CASE WHEN action_taken LIKE 'DROP%' THEN 1 ELSE 0 END)   as dropped,
                                       strftime('%Y-%m-%d %H:%M', datetime(timestamp, 'localtime')) as sort_key
                                FROM Logs
-                               WHERE timestamp >= datetime('now', '-30 minutes')
+                               WHERE timestamp >= datetime('now', '-60 minutes')
                                GROUP BY sort_key
                                ORDER BY sort_key ASC
                                """)

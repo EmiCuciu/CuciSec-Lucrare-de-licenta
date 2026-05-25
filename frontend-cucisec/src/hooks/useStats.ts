@@ -17,9 +17,9 @@ export const useLogCounts = () => {
     return useQuery({
         queryKey: ["logCounts"],
         queryFn: api.getLogCounts,
-        refetchInterval: 2000,
+        refetchInterval: 1000,
         refetchIntervalInBackground: false,
         refetchOnWindowFocus: true,
-        staleTime: 1900
+        staleTime: 900
     })
 }

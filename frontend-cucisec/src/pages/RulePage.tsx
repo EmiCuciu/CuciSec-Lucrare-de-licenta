@@ -8,7 +8,7 @@ export default function RulesPage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Firewall Rules</h1>
                     <p className="text-muted-foreground">
-                        Manage packet filtering rules. Changes apply instantly to nftables.
+                        Manage Filtering Rules.
                     </p>
                 </div>
                 <AddRuleModal/>

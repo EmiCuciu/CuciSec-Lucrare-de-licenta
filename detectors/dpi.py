@@ -1,6 +1,6 @@
 import re
 import urllib.parse
-from typing import List, NamedTuple, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from loguru import logger
 
@@ -8,13 +8,6 @@ from domain.models import PacketInfo
 
 HTTP_PORTS = {80, 8080, 8000, 8443}
 HTTPS_PORT = 443
-
-
-class DPIResult(NamedTuple):
-    """Result returned by DPIEngine.inspect()"""
-    alert: str
-    should_ban: bool
-
 
 class DPIEngine:
     """
@@ -65,11 +58,11 @@ class DPIEngine:
     def _normalize(payload: str) -> str:
         """
         URL-decode then lowercase payload.
-        Catches trivial encoding bypasses like %75nion%20select → union select.
+        Catches trivial encoding bypasses like %75nion%20select -> union select.
         """
         return urllib.parse.unquote_plus(payload).lower()
 
-    def inspect(self, packet_info: PacketInfo) -> Optional[DPIResult]:
+    def inspect(self, packet_info: PacketInfo) -> Optional[str]:
         """
         Inspect HTTP payload for Layer 7 attack signatures.
         :param packet_info: packet metadata (port_dst, payload required)
@@ -94,8 +87,7 @@ class DPIEngine:
 
         for pattern, label in self.signatures:
             if pattern.search(normalized):
-                logger.warning(f"[DPI] Hit: {label}")
                 logger.warning(f"[DPI ALERT] {packet_info.ip_src} | {label} | verdict=DROP+BAN")
-                return DPIResult(alert=label, should_ban=True)
+                return label
 
         return None

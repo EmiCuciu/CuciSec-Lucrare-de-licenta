@@ -97,13 +97,11 @@ class PacketInterceptor:
             return
 
         # DPI
-        dpi_result = self.dpi.inspect(packet_info)
-        if dpi_result:
-            verdict = "DROP+BAN" if dpi_result.should_ban else "DROP"
-            logger.warning(f"[INTERCEPTOR] {verdict}: DPI - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
-            self.actions.drop_packet(packet, packet_info, f"DPI_DROP: {dpi_result.alert}")
-            if dpi_result.should_ban:
-                self.actions.ban_ip(packet_info.ip_src, reason=dpi_result.alert)
+        dpi_alert = self.dpi.inspect(packet_info)
+        if dpi_alert:
+            logger.warning(f"[INTERCEPTOR] DROP: DPI - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
+            self.actions.drop_packet(packet, packet_info, f"DPI_DROP: {dpi_alert}")
+            self.actions.ban_ip(packet_info.ip_src, reason=dpi_alert)
             return
 
         # Rule Engine ACCEPT

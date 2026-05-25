@@ -102,13 +102,18 @@ T1.3 — HTTP la Apache pe Client
   (Attacker) curl http://10.0.3.5
   # Asteptat: pagina default Apache2 Ubuntu
 
-T1.4 — Dashboard CuciSec accesibil
-  (Attacker) curl http://10.0.5.10:8000/api/
-  # Asteptat: {"system": "CuciSec", "status": "running"}
-
 ================================================================
 T2 — FLOOD ENGINE
 ================================================================
+
+Teste grele:
+   hping3 -S ://10.0.3.5 -p 80 --flood --rand-source
+
+   hping3 -S ://10.0.3.5 -p ++20 -8 20-100
+
+   hping3 -S ://10.0.3.5 -p 80
+
+
 
 Praguri userspace:
   TCP  > 200 pachete / 12 secunde -> DROP + BAN

@@ -46,6 +46,9 @@ table inet cucisec {
 
     type filter hook forward priority 0; policy accept;
 
+    # HTTP traffic — always sent to userspace for DPI
+    tcp dport { 80, 8080 } counter queue num 1
+
     # allow already-established flows to pass without re-inspection
     ct state established,related counter accept
 
@@ -57,7 +60,6 @@ table inet cucisec {
     ip6 saddr @blacklist_v6 counter drop comment "blacklist_drop"
 
     # whitelist bypass: trusted internal subnets skip flood rate limits
-    # sent directly to userspace; FloodEngine also skips them via _is_whitelisted()
     ip saddr @whitelist_v4 counter queue num 1 comment "whitelist_bypass"
     ip6 saddr @whitelist_v6 counter queue num 1 comment "whitelist_bypass"
 
@@ -68,8 +70,7 @@ table inet cucisec {
     ip protocol icmp limit rate over 5/second burst 10 packets counter drop comment "icmp_flood"
     ip6 nexthdr icmpv6 limit rate over 5/second burst 10 packets counter drop comment "icmp_flood"
 
-    # TCP SYN FLOOD: max 20 new connections/sec per ip (generic)
-    # per-port fine-grained thresholds (SSH=10, RDP=15...) handled by userspace FloodEngine
+    # TCP SYN FLOOD: max 20 new connections/sec per ip
     tcp flags syn ip saddr != 0.0.0.0 update @flood_v4 { ip saddr limit rate over 20/second burst 40 packets } counter drop comment "tcp_syn_flood"
     tcp flags syn ip6 saddr != :: update @flood_v6 { ip6 saddr limit rate over 20/second burst 40 packets } counter drop comment "tcp_syn_flood"
 
@@ -81,9 +82,6 @@ table inet cucisec {
 
     # honeyport — send to userspace for ban decision
     tcp dport @honey_ports counter queue num 1 comment "honeyport_drop"
-
-    # HTTP traffic — always sent to userspace for DPI
-    tcp dport { 80, 8080 } counter queue num 1
 
     ip protocol icmp counter queue num 1
     ip6 nexthdr icmpv6 counter queue num 1

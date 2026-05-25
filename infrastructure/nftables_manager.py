@@ -1,9 +1,14 @@
 import json
 import os
 import subprocess
+import threading
+import time
 from typing import List
 
 from loguru import logger
+
+from repository.stats_repository import StatsRepository
+from service.stats_service import StatsService
 
 
 class NftablesManager:
@@ -164,3 +169,32 @@ class NftablesManager:
             logger.info("[NftablesManager] Table 'cucisec' deleted. Network restored to normal.")
         except Exception as e:
             logger.error(f"[NftablesManager] Cleanup error: {e}")
+
+    @staticmethod
+    def start_counter_snapshot_thread(interval: int = 300):
+        """
+        Background thread: every `interval` seconds reads nftables counters,
+        computes the delta from the last snapshot, and persists it to DB.
+        Handles nftables restarts gracefully (delta = current if counters went down).
+        """
+        _ZERO = {"tcp_syn_flood_dropped": 0, "icmp_flood_dropped": 0,
+                 "udp_flood_dropped": 0, "blacklist_dropped": 0, "honeyport_hits": 0}
+        previous = dict(_ZERO)
+
+        def _run():
+            nonlocal previous
+            while True:
+                time.sleep(interval)
+                try:
+                    nft_json = NftablesManager.get_stats()
+                    current = StatsService.parse_flood_counters(nft_json)
+                    delta = StatsService.compute_delta(current, previous)
+                    if any(delta.values()):
+                        StatsRepository.accumulate_kernel_counters(delta)
+                    previous = current
+                except Exception as e:
+                    logger.error(f"[CounterSnapshot] error: {e}")
+
+        t = threading.Thread(target=_run, daemon=True, name="counter-snapshot")
+        t.start()
+        logger.info(f"[BOOT] Counter snapshot thread started (interval={interval}s)")

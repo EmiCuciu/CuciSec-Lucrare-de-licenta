@@ -21,7 +21,7 @@ export function FloodChart() {
             <CardHeader className="shrink-0 pb-2">
                 <CardTitle>Kernel Drop Counters</CardTitle>
                 <CardDescription>
-                    Cumulative kernel drop counters (persisted in DB)
+                    Cumulative kernel drop counters based on IP address
                     {!hasActivity && " — no activity detected"}
                 </CardDescription>
             </CardHeader>

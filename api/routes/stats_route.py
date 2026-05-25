@@ -17,10 +17,10 @@ def get_stats():
     return: StatsResponse
     """
 
-    db_stats   = stats_repo.get_db_stats()
+    db_stats = stats_repo.get_db_stats()
     recent_bans = stats_repo.get_recent_bans()
 
-    nft_json       = NftablesManager.get_stats()
+    nft_json = NftablesManager.get_stats()
     flood_counters = StatsService.parse_flood_counters(nft_json)
 
     cumulative = stats_repo.get_kernel_counters()

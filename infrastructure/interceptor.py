@@ -68,9 +68,8 @@ class PacketInterceptor:
             return
 
         logger.info(f"[PACKET] {packet_info.protocol} "
-                     f"{packet_info.ip_src}:{packet_info.port_src} -> "
-                     f"{packet_info.ip_dst}:{packet_info.port_dst}")
-
+                    f"{packet_info.ip_src}:{packet_info.port_src} -> "
+                    f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
         # Flood Engine
         flood_alert = self.flood.inspect(packet_info)
@@ -84,7 +83,8 @@ class PacketInterceptor:
         decision, zone = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
             label = f"RULE_ENGINE_DROP_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_DROP"
-            logger.warning(f"[INTERCEPTOR] DROP: STATIC RULE ({label}) - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
+            logger.warning(
+                f"[INTERCEPTOR] DROP: STATIC RULE ({label}) - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, label)
             return
 
@@ -138,16 +138,16 @@ class PacketInterceptor:
             self.stop_interceptor()
 
     def stop_interceptor(self):
-       """
-       Stops interception and free resources
-       :return: None
-       """
+        """
+        Stops interception and free resources
+        :return: None
+        """
 
-       if self.is_running:
-           logger.info("[INTERCEPTOR] Stop interception and free kernel connection")
-           self.nfqueue.unbind()
-           self.is_running = False
-           self.actions.get_db_writer().stop()
-           logger.info("[INTERCEPTOR] Database background worker stopped.")
+        if self.is_running:
+            logger.info("[INTERCEPTOR] Stop interception and free kernel connection")
+            self.nfqueue.unbind()
+            self.is_running = False
+            self.actions.get_db_writer().stop()
+            logger.info("[INTERCEPTOR] Database background worker stopped.")
 
-           NftablesManager.cleanup()
+            NftablesManager.cleanup()

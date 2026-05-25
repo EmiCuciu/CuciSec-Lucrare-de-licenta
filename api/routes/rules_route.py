@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 from api.dependencies import get_rule_engine
-from api.schemas import RuleResponse, RuleCreate, RuleUpdate
+from api.schemas import RuleResponse, RuleCreate
 from domain.models import RuleModel
 from repository.rule_repository import RuleRepository
 from service.rule_engine import RuleEngine
@@ -91,12 +91,12 @@ def delete_rule(
 @router.put("/{rule_id}", response_model=RuleResponse)
 def update_rule(
         rule_id: int,
-        rule_data: RuleUpdate,
+        rule_data: RuleCreate,
         rule_engine: RuleEngine = Depends(get_rule_engine)):
     """
     Update an existing rule and hot-reload it in RAM
     :param rule_id: id rule to update
-    :param rule_data: RuleUpdate
+    :param rule_data: RuleCreate
     :param rule_engine: RuleEngine dependency
     :return: RuleResponse
     """

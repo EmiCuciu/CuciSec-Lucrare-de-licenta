@@ -178,7 +178,7 @@ Apache ruleaza pe Client (10.0.3.5:80).
 DPI inspecteza payload-ul HTTP necriptat.
 
 T4.1 — SQL Injection: UNION SELECT
-  (Attacker) curl "http://10.0.3.5/?id=1 UNION SELECT * FROM users"
+  (Attacker) curl "http://10.0.3.5/?id=1%20UNION%20SELECT%20*%20FROM%20users"
   # Asteptat: DROP + BAN
   # Log: [DPI ALERT] Attack detected: Signature 'union\s+select'
   # Unban: curl -X DELETE http://10.0.5.10:8000/api/blacklist/10.0.5.5
@@ -188,7 +188,7 @@ T4.2 — SQL Injection: OR 1=1
   # Asteptat: DROP + BAN
   # Log: Signature 'or\s+1=1'
   # Unban dupa test
-
+cd 
 T4.3 — SQL Injection: DROP TABLE
   (Attacker) curl "http://10.0.3.5/?q=DROP TABLE users"
   # Asteptat: DROP + BAN

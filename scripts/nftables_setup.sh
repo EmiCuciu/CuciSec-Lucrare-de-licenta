@@ -78,24 +78,16 @@ table inet cucisec {
 
 
 ###########################################################################
-    #####    for malformed packets
-
-    ct state invalid counter drop comment "invalid_packets_drop"
-###########################################################################
-
-
-
-###########################################################################
     #####    for DDOS (rand-source)
 
-    # TCP SYN global — rand-source SYN flood (reduced: 200→50/s)
+    # TCP SYN global — rand-source SYN flood
     tcp flags syn limit rate over 50/second burst 100 packets counter drop comment "global_syn_flood"
 
-    # UDP global —  rand-source UDP flood (reduced: 300→100/s)
+    # UDP global —  rand-source UDP flood
     ip protocol udp limit rate over 100/second burst 200 packets counter drop comment "global_udp_flood"
     ip6 nexthdr udp limit rate over 100/second burst 200 packets counter drop comment "global_udp_flood"
 
-    # ICMP global — non-per-IP (reduced: 20→10/s)
+    # ICMP global — non-per-IP
     ip protocol icmp limit rate over 10/second burst 20 packets counter drop comment "global_icmp_flood"
     ip6 nexthdr icmpv6 limit rate over 10/second burst 20 packets counter drop comment "global_icmp_flood"
 ###########################################################################
@@ -103,7 +95,7 @@ table inet cucisec {
 
 
 ###########################################################################
-    #####    per-DESTINATION flood detection (defeats --rand-source)
+    #####    per-DESTINATION flood detection
     #####    tracks rate TO a specific host regardless of source IP
 
     # SYN flood to destination: max 30 new connections/sec to any single host

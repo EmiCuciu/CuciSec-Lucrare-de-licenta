@@ -101,12 +101,12 @@ class StatsRepository:
     @staticmethod
     def get_dpi_drops() -> int:
         """
-        Return total count of DPI-detected drops from Logs table.
+        Return total count of unique IPs banned due to DPI detection from Blacklist table.
         """
         try:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM Logs WHERE action_taken LIKE 'DPI_DROP%'")
+                cursor.execute("SELECT COUNT(*) FROM Blacklist WHERE reason LIKE 'DPI%'")
                 return cursor.fetchone()[0]
         except sqlite3.Error as e:
             logger.error(f"[StatsRepository] get_dpi_drops error: {e}")

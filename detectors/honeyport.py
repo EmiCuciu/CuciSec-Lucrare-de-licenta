@@ -20,6 +20,7 @@ class HoneyportEngine:
         :return: reason for blocking / None if packet is legitimate
         """
         logger.debug("[HONEYPORT] - INSPECTING...")
+
         port_dst = packet_info.port_dst
         protocol = packet_info.protocol
 

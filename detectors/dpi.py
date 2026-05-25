@@ -51,23 +51,20 @@ class DPIEngine:
     ]
 
     def __init__(self):
-        # instance copy allows extending signatures at runtime without touching class state
         self.signatures: List[Tuple[re.Pattern, str]] = list(self._SIGNATURES)
 
     @staticmethod
     def _normalize(payload: str) -> str:
-        """
-        URL-decode then lowercase payload.
-        Catches trivial encoding bypasses like %75nion%20select -> union select.
-        """
         return urllib.parse.unquote_plus(payload).lower()
 
     def inspect(self, packet_info: PacketInfo) -> Optional[str]:
         """
         Inspect HTTP payload for Layer 7 attack signatures.
         :param packet_info: packet metadata (port_dst, payload required)
-        :return: DPIResult or None if payload is clean / port not inspectable
+        :return: verdict
         """
+        logger.debug("[DPI] - INSPECTING...")
+
         port_dst = packet_info.port_dst
 
         if port_dst == HTTPS_PORT:
@@ -79,6 +76,7 @@ class DPIEngine:
 
         payload = packet_info.payload
         if not payload:
+            logger.debug(f"[DPI] No payload from {packet_info.ip_src} -> port {port_dst}, skipping")
             return None
 
         logger.debug(f"[DPI] Inspecting payload from {packet_info.ip_src} -> port {port_dst}")
@@ -88,6 +86,6 @@ class DPIEngine:
         for pattern, label in self.signatures:
             if pattern.search(normalized):
                 logger.warning(f"[DPI ALERT] {packet_info.ip_src} | {label} | verdict=DROP+BAN")
-                return label
+                return f"DPI HIT:  {label}  "
 
         return None

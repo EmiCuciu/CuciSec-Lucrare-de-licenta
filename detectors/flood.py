@@ -23,13 +23,12 @@ class FloodEngine:
         self.MAX_UDP_NEW = 250
         self.MAX_ICMP = 30
 
-        # Global aggregate thresholds (all IPs combined) — defeats --rand-source
-        self.GLOBAL_MAX_SYN  = 400    # SYN packets in TIME_WINDOW across all sources
+        # global aggregate thresholds (all IPs combined) — DDOS
+        self.GLOBAL_MAX_SYN  = 400
         self.GLOBAL_MAX_UDP  = 500
         self.GLOBAL_MAX_ICMP = 60
 
         self._history = defaultdict(list)
-        # Tracks all packets regardless of source IP for global rate detection
         self._global_history: dict[str, list] = {"TCP": [], "UDP": [], "ICMP": [], "ICMPv6": []}
         self._whitelist = [
             ipaddress.ip_network(c, strict=False)
@@ -37,9 +36,6 @@ class FloodEngine:
         ]
 
     def _is_whitelisted(self, ip: str) -> bool:
-        """
-        Return True if ip belongs to any trusted CIDR in Config.WHITELIST_CIDRS.
-        """
         try:
             addr = ipaddress.ip_address(ip)
             return any(addr in network for network in self._whitelist)
@@ -47,10 +43,6 @@ class FloodEngine:
             return False
 
     def _check_global_rate(self, proto: str, now: float) -> Optional[str]:
-        """
-        Check aggregate packet rate across ALL source IPs.
-        Defeats --rand-source attacks where per-IP counts stay low.
-        """
         bucket = self._global_history.get(proto, [])
         bucket = [t for t in bucket if now - t < self.TIME_WINDOW]
         bucket.append(now)
@@ -70,19 +62,18 @@ class FloodEngine:
 
     def inspect(self, packet_info: PacketInfo) -> Optional[tuple[str, bool]]:
         """
-        Inspect for flood anomaly using a sliding window per source IP
-        and a global aggregate window (defeats --rand-source).
+        Inspect for flood anomaly , prevents Dos-DDos attacks
         :param packet_info: packet metadata
         :return: (alert_string, should_ban) tuple if flood detected, None otherwise.
                  should_ban=False for global/rand-source floods (IPs are fake).
         """
+        logger.debug("[FLOOD] - INSPECTING...")
+
         ip = packet_info.ip_src
         proto = packet_info.protocol
-        port  = packet_info.port_dst
-        now   = time.time()
+        port = packet_info.port_dst
+        now = time.time()
 
-        # Global aggregate check — works even when source IPs are all different.
-        # should_ban=False: IPs from rand-source are spoofed, banning them is pointless.
         global_alert = self._check_global_rate(proto, now)
         if global_alert:
             return global_alert, False
@@ -90,7 +81,6 @@ class FloodEngine:
         if not ip or self._is_whitelisted(ip):
             return None
 
-        # Per-IP check — works for fixed-source floods, should_ban=True.
         self._history[ip] = [t for t in self._history[ip] if now - t < self.TIME_WINDOW]
         self._history[ip].append(now)
         count = len(self._history[ip])

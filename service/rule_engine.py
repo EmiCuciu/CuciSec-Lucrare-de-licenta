@@ -39,6 +39,8 @@ class RuleEngine:
         :param packet_info:
         :return: Tuple (Action, Zone)
         """
+        logger.debug("[RuleEngine] - INSPECTING...")
+
         if not packet_info:
             return None, ""
 

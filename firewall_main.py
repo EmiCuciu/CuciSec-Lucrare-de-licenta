@@ -50,7 +50,7 @@ def main():
 
     interceptor = PacketInterceptor(Config.QUEUE_NUM)
 
-    NftablesManager.start_counter_snapshot_thread(interval=60)
+    NftablesManager.start_counter_snapshot_thread(interval=10)
 
     api_thread = threading.Thread(
         target=start_api,

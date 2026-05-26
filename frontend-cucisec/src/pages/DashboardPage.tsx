@@ -45,7 +45,7 @@ export default function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 shrink-0">
                 <MetricCard
                     title="Total Intercepted Packets"
-                    value={intercepted.toLocaleString()}
+                    value={intercepted.toLocaleString("de-DE")}
                     icon={<Network className="h-5 w-5"/>}
                     trend="Kernel + Userspace"
                     variant="default"
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
                 <MetricCard
                     title="Total Analyzed Packets"
-                    value={total.toLocaleString()}
+                    value={total.toLocaleString("de-DE")}
                     icon={<Activity className="h-5 w-5"/>}
                     trend="Active monitoring"
                     variant="info"
@@ -61,21 +61,21 @@ export default function DashboardPage() {
 
                 <MetricCard
                     title="Accepted Packets"
-                    value={accepted.toLocaleString()}
+                    value={accepted.toLocaleString("de-DE")}
                     icon={<ShieldCheck className="h-5 w-5"/>}
                     variant="success"
                 />
 
                 <MetricCard
                     title="Dropped Packets"
-                    value={dropped.toLocaleString()}
+                    value={dropped.toLocaleString("de-DE")}
                     icon={<ShieldAlert className="h-5 w-5"/>}
                     variant="danger"
                 />
 
                 <MetricCard
                     title="Blacklist"
-                    value={banned.toLocaleString()}
+                    value={banned.toLocaleString("de-DE")}
                     icon={<ServerCrash className="h-5 w-5"/>}
                     trend="Auto/Manual Banned IPs"
                     variant="warning"

@@ -134,7 +134,7 @@ class NftablesManager:
             logger.error(f"[NftablesManager] Cleanup error: {e}")
 
     @staticmethod
-    def start_counter_snapshot_thread(interval: int = 300):
+    def start_counter_snapshot_thread(interval: int = 5):
         """
         Background thread: every `interval` seconds reads nftables counters,
         computes the delta from the last snapshot, and persists it to DB.

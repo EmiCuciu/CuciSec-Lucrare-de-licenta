@@ -13,7 +13,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                     color: "hsl(var(--popover-foreground))",
                 }}
             >
-                <p className="label">{`${label} : ${payload[0].value} packets dropped`}</p>
+                <p className="label">{`${label} : ${payload[0].value.toLocaleString('de-DE')} packets dropped`}</p>
             </div>
         );
     }
@@ -30,7 +30,6 @@ export function FloodChart() {
         { name: "TCP SYN",   value: c?.tcp_syn_flood_dropped || 0, color: "#06b6d4" },
         { name: "ICMP",      value: c?.icmp_flood_dropped    || 0, color: "#ffd500" },
         { name: "UDP",       value: c?.udp_flood_dropped     || 0, color: "#ff6a00" },
-        { name: "Blacklist", value: c?.blacklist_dropped      || 0, color: "#8b5cf6" },
     ] : [];
 
     return (
@@ -45,7 +44,9 @@ export function FloodChart() {
                             <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                                    tickLine={false} axisLine={false} />
                             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                                   tickLine={false} axisLine={false} />
+                                   tickLine={false} axisLine={false}
+                                   tickFormatter={(value) => new Intl.NumberFormat('de-DE').format(value as number)}
+                            />
                             <Tooltip
                                 cursor={{fill: 'hsl(var(--accent))', radius: 4}}
                                 content={<CustomTooltip />}

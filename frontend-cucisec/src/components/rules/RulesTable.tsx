@@ -73,7 +73,7 @@ export function RulesTable() {
                 />
             )}
 
-            <div className="rounded-md border border-border bg-card">
+            <div className="overflow-x-auto rounded-md border border-border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">

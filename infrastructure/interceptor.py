@@ -75,13 +75,13 @@ class PacketInterceptor:
         # Rule Engine — administrator intent takes priority over automated detection.
         decision, zone = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
-            label = f"RULE_ENGINE_DROP_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_DROP"
-            logger.warning(f"[INTERCEPTOR] DROP: STATIC RULE ({label}) - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
+            label = f"RULE ENGINE {zone.replace(' ', '_').upper()}" if zone else "RULE ENGINE"
+            logger.warning(f"[INTERCEPTOR] DROP: {label} - ip_source: {packet_info.ip_src}:{packet_info.port_src}")
             self.actions.drop_packet(packet, packet_info, label)
             return
         if decision == "ACCEPT":
-            label = f"RULE_ENGINE_ACCEPT_{zone.replace(' ', '_').upper()}" if zone else "RULE_ENGINE_ACCEPT"
-            logger.info(f"[INTERCEPTOR] ACCEPT: STATIC RULE ({label})")
+            label = f"RULE ENGINE {zone.replace(' ', '_').upper()}" if zone else "RULE ENGINE"
+            logger.info(f"[INTERCEPTOR] ACCEPT: {label}")
             self.actions.accept_packet(packet, packet_info, label)
             return
 

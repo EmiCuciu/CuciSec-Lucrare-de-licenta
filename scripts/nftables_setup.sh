@@ -78,6 +78,15 @@ table inet cucisec {
 
 
 ###########################################################################
+    #####    whitelist bypass: trusted internal subnets skip flood rate limits
+
+    ip saddr @whitelist_v4 accept
+    ip6 saddr @whitelist_v6 accept
+###########################################################################
+
+
+
+###########################################################################
     #####    for DDOS (rand-source)
 
     # TCP SYN global — rand-source SYN flood
@@ -125,14 +134,6 @@ table inet cucisec {
     #####    allow already-established flows to pass without re-inspection
 
 #    ct state established,related counter accept
-###########################################################################
-
-
-###########################################################################
-    #####    whitelist bypass: trusted internal subnets skip flood rate limits
-
-    ip saddr @whitelist_v4 accept
-    ip6 saddr @whitelist_v6 accept
 ###########################################################################
 
 

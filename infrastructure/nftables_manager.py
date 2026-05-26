@@ -103,43 +103,6 @@ class NftablesManager:
             logger.exception(f"[NftablesManager] sync_blacklist error: {e}")
 
     @staticmethod
-    def sync_whitelist(cidrs: List[str]):
-        """
-        ___FOR BOOT___
-        Populate kernel whitelist_v4/v6 sets from Config.WHITELIST_CIDRS.
-        Must be called after setup() so the sets already exist.
-        :param cidrs: list of CIDR strings (e.g. ["10.0.2.0/24", "127.0.0.0/8"])
-        :return: None
-        """
-        ipv4 = [c for c in cidrs if ":" not in c]
-        ipv6 = [c for c in cidrs if ":" in c]
-
-        commands = ""
-        if ipv4:
-            commands += f"add element inet cucisec whitelist_v4 {{ {', '.join(ipv4)} }}\n"
-        if ipv6:
-            commands += f"add element inet cucisec whitelist_v6 {{ {', '.join(ipv6)} }}\n"
-
-        if not commands:
-            return
-
-        try:
-            process = subprocess.Popen(
-                ["sudo", "nft", "-f", "-"],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            stdout, stderr = process.communicate(input=commands)
-            if process.returncode != 0:
-                logger.error(f"[NftablesManager] sync_whitelist failed: {stderr}")
-            else:
-                logger.info(f"[NftablesManager] Whitelist synced: {len(cidrs)} CIDRs to kernel")
-        except Exception as e:
-            logger.exception(f"[NftablesManager] sync_whitelist error: {e}")
-
-    @staticmethod
     def get_stats() -> dict:
         """
         Read contor from Kernel and format to JSON
@@ -175,11 +138,14 @@ class NftablesManager:
         """
         Background thread: every `interval` seconds reads nftables counters,
         computes the delta from the last snapshot, and persists it to DB.
-        Handles nftables restarts gracefully (delta = current if counters went down).
         """
-        _ZERO = {"tcp_syn_flood_dropped": 0, "icmp_flood_dropped": 0,
-                 "udp_flood_dropped": 0, "blacklist_dropped": 0, "honeyport_hits": 0}
-        previous = dict(_ZERO)
+        previous = {
+            "tcp_syn_flood_dropped": 0,
+            "icmp_flood_dropped": 0,
+            "udp_flood_dropped": 0,
+            "blacklist_dropped": 0,
+            "honeyport_hits": 0
+        }
 
         def _run():
             nonlocal previous
@@ -189,8 +155,10 @@ class NftablesManager:
                     nft_json = NftablesManager.get_stats()
                     current = StatsService.parse_flood_counters(nft_json)
                     delta = StatsService.compute_delta(current, previous)
+
                     if any(delta.values()):
                         StatsRepository.accumulate_kernel_counters(delta)
+
                     previous = current
                 except Exception as e:
                     logger.error(f"[CounterSnapshot] error: {e}")

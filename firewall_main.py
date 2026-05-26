@@ -37,19 +37,15 @@ def main():
     logger.info("[BOOT] Database initialized")
 
 
-    nft = NftablesManager()
     script_path = os.path.join(os.path.dirname(__file__), "scripts", "nftables_setup.sh")
-    nft.setup(script_path)
+    NftablesManager.setup(script_path)
     logger.info("[BOOT] Kernel initialized (nftables flushed & created)")
-
-    NftablesManager.sync_whitelist(Config.WHITELIST_CIDRS)
-    logger.info(f"[BOOT] Whitelist synced: {len(Config.WHITELIST_CIDRS)} CIDRs to kernel")
 
     blacklist_repo = BlacklistRepository()
     blk_ips = blacklist_repo.get_all_ips()
     ipv4_list = [ip for ip in blk_ips if ":" not in ip]
     ipv6_list = [ip for ip in blk_ips if ":" in ip]
-    nft.sync_blacklist(ipv4_list, ipv6_list)
+    NftablesManager.sync_blacklist(ipv4_list, ipv6_list)
     logger.info(f"[BOOT] Blacklist synced: {len(blk_ips)} IPS from DB to Kernel")
 
     interceptor = PacketInterceptor(Config.QUEUE_NUM)

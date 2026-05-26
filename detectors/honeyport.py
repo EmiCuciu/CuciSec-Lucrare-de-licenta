@@ -11,7 +11,7 @@ class HoneyportEngine:
     """
 
     def __init__(self, honey_ports):
-        self.honey_ports = honey_ports if honey_ports else [23, 2323, 3389, 4444, 9999]
+        self.honey_ports = honey_ports
 
     def inspect(self, packet_info: PacketInfo):
         """

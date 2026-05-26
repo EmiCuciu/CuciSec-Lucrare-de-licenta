@@ -14,7 +14,9 @@ from utils.config import Config
 
 
 class ManagementAccessMiddleware(BaseHTTPMiddleware):
-    """Blocks requests to the management API from untrusted networks."""
+    """
+    Blocks requests to the management API from untrusted networks.
+    """
 
     _DENY = JSONResponse(
         status_code=403,
@@ -29,12 +31,16 @@ class ManagementAccessMiddleware(BaseHTTPMiddleware):
         client = request.client
         if client is None:
             return self._DENY
+
         try:
             addr = ipaddress.ip_address(client.host)
+
         except ValueError:
             return self._DENY
+
         if not any(addr in net for net in self._networks):
             return self._DENY
+
         return await call_next(request)
 
 

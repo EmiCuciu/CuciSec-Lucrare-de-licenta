@@ -50,13 +50,14 @@ class PacketInterceptor:
         :return: None
 
         FLOW:
-            NFTABLE IPS FLOOD (KERNEL)
-                -> RULE_ENGINE( STATIC RULE - DROP)
+            NFTABLE IPS FLOOD
+                -> RULE_ENGINE
                     -> HONEYPORT
                         -> DPI
                             -> DEFAULT ACCEPT
         """
 
+        #TODO verifica cu atentie logica de decizie
         raw_payload = packet.get_payload()
 
         packet_info = self.analyzer.analyze(raw_payload)

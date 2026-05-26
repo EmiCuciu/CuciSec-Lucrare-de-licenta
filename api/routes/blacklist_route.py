@@ -51,5 +51,5 @@ def unban_ip(ip: str,
     blacklist_repo.delete(ip)
     NftablesManager.unban_ip(ip)
     firewall_actions.unban_ip(ip)
-    logger.info(f"[BlacklistRoute] unbanned ip: {ip}")
+    logger.debug(f"[BlacklistRoute] unbanned ip: {ip}")
     return {"unbanned": ip}

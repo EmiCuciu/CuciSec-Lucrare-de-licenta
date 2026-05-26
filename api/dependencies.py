@@ -1,7 +1,6 @@
 from fastapi import Request
 from loguru import logger
 
-from infrastructure.nftables_manager import NftablesManager
 from service.firewall_actions import FirewallActions
 from service.rule_engine import RuleEngine
 
@@ -26,10 +25,3 @@ def get_firewall_actions(request: Request) -> FirewallActions:
     """
     logger.debug("[Dependency] get_firewall_actions called")
     return request.app.state.firewall_actions
-
-def get_nft_manager() -> NftablesManager:
-    """
-    Dependency Injection for NftablesManager
-    """
-    logger.debug("[Dependency] get_nft_manager called")
-    return NftablesManager()

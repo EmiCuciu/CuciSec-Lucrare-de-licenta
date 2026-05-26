@@ -66,6 +66,7 @@ class StatsRepository:
                     }
         except sqlite3.Error as e:
             logger.error(f"[StatsRepository] get_kernel_counters error: {e}")
+
         return {"tcp_syn_flood_dropped": 0, "icmp_flood_dropped": 0,
                 "udp_flood_dropped": 0, "blacklist_dropped": 0, "honeyport_hits": 0}
 

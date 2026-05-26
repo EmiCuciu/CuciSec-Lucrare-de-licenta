@@ -7,6 +7,7 @@ from starlette.responses import FileResponse
 from starlette.staticfiles import StaticFiles
 
 from api.routes import rules_route, logs_route, blacklist_route, stats_route
+from repository.stats_repository import StatsRepository
 
 
 def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
@@ -35,6 +36,7 @@ def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
     # store instances to app.state -> Dep Injection
     app.state.rule_engine = rule_engine
     app.state.firewall_actions = firewall_actions
+    app.state.kernel_baseline = StatsRepository.get_kernel_counters()
 
     # add routes
     app.include_router(rules_route.router)

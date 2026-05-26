@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from api.dependencies import get_kernel_baseline
 from api.schemas import StatsResponse
 from infrastructure.nftables_manager import NftablesManager
 from repository.stats_repository import StatsRepository
@@ -9,12 +10,11 @@ router = APIRouter(prefix="/api/stats", tags=["Stats"])
 stats_repo = StatsRepository()
 
 
-
 @router.get("/", response_model=StatsResponse)
-def get_stats():
+def get_stats(baseline: dict = Depends(get_kernel_baseline)):
     """
-    Combined statistics: DB + Kernel (nftables)
-    return: StatsResponse
+    Combined statistics: DB + kernel (nftables).
+    flood_counters = previous sessions (baseline from DB at startup) + current session (live nftables).
     """
 
     db_stats = stats_repo.get_db_stats()
@@ -22,15 +22,16 @@ def get_stats():
     dpi_drops = stats_repo.get_dpi_drops()
 
     nft_json = NftablesManager.get_stats()
-    flood_counters = StatsService.parse_flood_counters(nft_json)
+    live = StatsService.parse_flood_counters(nft_json)
 
-    cumulative = stats_repo.get_kernel_counters()
+    # persistent (all previous sessions) + real-time (current session, no lag)
+    combined = {k: baseline.get(k, 0) + live.get(k, 0) for k in live}
 
     kernel_only_drops = (
-        cumulative["tcp_syn_flood_dropped"] +
-        cumulative["icmp_flood_dropped"]    +
-        cumulative["udp_flood_dropped"]     +
-        cumulative["blacklist_dropped"]
+        combined["tcp_syn_flood_dropped"] +
+        combined["icmp_flood_dropped"]    +
+        combined["udp_flood_dropped"]     +
+        combined["blacklist_dropped"]
     )
     total_intercepted = db_stats["total_logs"] + kernel_only_drops
 
@@ -40,8 +41,7 @@ def get_stats():
         dropped=db_stats["dropped"],
         banned_ips=db_stats["banned_ips"],
         total_intercepted=total_intercepted,
-        flood_counters=flood_counters,
-        cumulative_flood_counters=cumulative,
+        flood_counters=combined,
         dpi_drops=dpi_drops,
         recent_bans=recent_bans
     )

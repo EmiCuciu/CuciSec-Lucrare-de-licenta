@@ -104,15 +104,13 @@ class BlacklistResponse(BaseModel):
 class StatsResponse(BaseModel):
     """
     Schema for ( GET / stats )
-    These statistics will be based from DB and nftables counter
     """
     total_logs: int
     accepted: int
     dropped: int
     banned_ips: int
-    total_intercepted: int          # userspace logs + cumulative kernel drops
-    flood_counters: dict            # live nftables counters (current session)
-    cumulative_flood_counters: dict # persistent counters accumulated in DB
+    total_intercepted: int   # userspace logs + kernel drops (all sessions + real-time)
+    flood_counters: dict     # previous sessions (DB baseline) + current session (live nftables)
     dpi_drops: int = 0
     recent_bans: List[dict] = []
 

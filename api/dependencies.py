@@ -25,3 +25,13 @@ def get_firewall_actions(request: Request) -> FirewallActions:
     """
     logger.debug("[Dependency] get_firewall_actions called")
     return request.app.state.firewall_actions
+
+
+def get_kernel_baseline(request: Request) -> dict:
+    """
+    Returns kernel counter snapshot taken at startup.
+    Used to compute persistent + real-time combined counters.
+    :param request: request
+    :return: dict with baseline kernel counters from previous sessions
+    """
+    return request.app.state.kernel_baseline

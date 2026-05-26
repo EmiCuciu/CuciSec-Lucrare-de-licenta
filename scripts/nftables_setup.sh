@@ -15,9 +15,8 @@ table inet cucisec {
 
 
   # blacklist set -> IPs banned by userspace IPS logic, dropped at NIC level
-  # persists 24h
-  set blacklist_v4 { type ipv4_addr; flags timeout; timeout 24h; }
-  set blacklist_v6 { type ipv6_addr; flags timeout; timeout 24h; }
+  set blacklist_v4 { type ipv4_addr; }
+  set blacklist_v6 { type ipv6_addr; }
 
 
 
@@ -32,7 +31,6 @@ table inet cucisec {
   set flood_v6 { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
 
   # dynamic sets -> flood tracking per-DESTINATION-IP (defeats --rand-source)
-  # each destination IP gets its own rate bucket per protocol
   set flood_dst_syn_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
   set flood_dst_syn_v6  { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
   set flood_dst_udp_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
@@ -67,6 +65,8 @@ table inet cucisec {
   chain forward {
 
     type filter hook forward priority 0; policy accept;
+
+    ct state invalid drop
 
 ###########################################################################
     #####    instant drop for all IPs from blacklist
@@ -131,8 +131,8 @@ table inet cucisec {
 ###########################################################################
     #####    whitelist bypass: trusted internal subnets skip flood rate limits
 
-    ip saddr @whitelist_v4 counter queue num 1 comment "whitelist_bypass"
-    ip6 saddr @whitelist_v6 counter queue num 1 comment "whitelist_bypass"
+    ip saddr @whitelist_v4 accept
+    ip6 saddr @whitelist_v6 accept
 ###########################################################################
 
 

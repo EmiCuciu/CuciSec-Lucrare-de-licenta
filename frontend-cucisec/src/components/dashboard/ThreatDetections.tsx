@@ -24,7 +24,7 @@ function StatBadge({ icon, label, value, color }: {
 export function ThreatDetections() {
     const {data: stats} = useStats();
 
-    const honeyportHits = stats?.cumulative_flood_counters?.honeyport_hits ?? 0;
+    const honeyportHits = stats?.flood_counters?.honeyport_hits ?? 0;
     const dpiDrops = stats?.dpi_drops ?? 0;
     const recentBans = stats?.recent_bans ?? [];
 

@@ -25,7 +25,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function FloodChart() {
     const { data: stats } = useStats();
 
-    const c = stats?.cumulative_flood_counters;
+    const c = stats?.flood_counters;
     const chartData = stats ? [
         { name: "TCP SYN",   value: c?.tcp_syn_flood_dropped || 0, color: "#06b6d4" },
         { name: "ICMP",      value: c?.icmp_flood_dropped    || 0, color: "#ffd500" },

@@ -35,7 +35,6 @@ export interface Stats {
   banned_ips: number;
   total_intercepted: number;
   flood_counters: Record<string, number>;
-  cumulative_flood_counters: Record<string, number>;
   dpi_drops: number;
   recent_bans: { ip: string; reason: string; timestamp: string }[];
 }

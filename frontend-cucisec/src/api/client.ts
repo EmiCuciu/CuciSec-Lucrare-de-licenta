@@ -47,6 +47,10 @@ export const api = {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(rule)
     }),
+    toggleRule: (id: number, enabled: 0 | 1) => fetcher<{ rule_id: number; enabled: number; reloaded: boolean }>(
+        `/rules/${id}/toggle?enabled=${enabled}`,
+        {method: 'PATCH'}
+    ),
 
     /// Logs
     getLogs: (limit = 50) => fetcher<LogEntry[]>(`/logs/?limit=${limit}`),

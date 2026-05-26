@@ -18,14 +18,11 @@ export function RulesTable() {
     const queryClient = useQueryClient();
     const [editingRule, setEditingRule] = useState<Rule | null>(null);
 
-    const actionMutation = useMutation({
-        mutationFn: ({rule, action}: { rule: Rule, action: "ACCEPT" | "DROP" }) => {
-            const {id, ...rest} = rule;
-            return api.updateRule(id, {...rest, action});
-        },
+    const toggleMutation = useMutation({
+        mutationFn: ({id, enabled}: { id: number; enabled: 0 | 1 }) => api.toggleRule(id, enabled),
         onSuccess: async () => {
             await queryClient.invalidateQueries({queryKey: ["rules"]});
-            toast.info("Rule action updated");
+            toast.info("Rule status updated");
         },
         onError: (error: Error) => {
             toast.error(`Error at toggle: ${error.message}`);
@@ -80,7 +77,7 @@ export function RulesTable() {
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-25"></TableHead>
+                            <TableHead className="w-25">Status</TableHead>
                             <TableHead>Action</TableHead>
                             <TableHead>Zone</TableHead>
                             <TableHead>Protocol</TableHead>
@@ -102,14 +99,14 @@ export function RulesTable() {
                             rules.map((rule) => (
                                 <TableRow
                                     key={rule.id}
-                                    className="cursor-pointer"
+                                    className={`cursor-pointer transition-opacity ${rule.enabled === 0 ? "opacity-40" : ""}`}
                                     onClick={() => setEditingRule(rule)}
                                 >
                                     <TableCell onClick={(e) => e.stopPropagation()}>
                                         <Switch
-                                            checked={rule.action === "ACCEPT"}
+                                            checked={rule.enabled === 1}
                                             onCheckedChange={(checked) =>
-                                                actionMutation.mutate({rule, action: checked ? "ACCEPT" : "DROP"})
+                                                toggleMutation.mutate({id: rule.id, enabled: (checked ? 1 : 0) as 0 | 1})
                                             }
                                         />
                                     </TableCell>

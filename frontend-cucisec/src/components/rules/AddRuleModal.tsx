@@ -24,11 +24,12 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/
 
 const formSchema = z.object({
     ip_src: z.string().optional(),
+    ip_dst: z.string().optional(),
     port: z.string().optional(),
     protocol: z.string(),
     action: z.enum(["ACCEPT", "DROP"]),
     description: z.string().optional(),
-    zone: z.string(),
+    zone: z.enum(["WAN", "LAN", "ANY"]),
 });
 
 interface AddRuleModalProps {
@@ -52,13 +53,15 @@ export function AddRuleModal({rule, open: controlledOpen, onOpenChange}: AddRule
         resolver: zodResolver(formSchema),
         values: isEditMode ? {
             ip_src: rule.ip_src ?? "",
+            ip_dst: rule.ip_dst ?? "",
             port: rule.port != null ? String(rule.port) : "",
             protocol: rule.protocol ?? "ALL",
             action: rule.action as "ACCEPT" | "DROP",
             description: rule.description ?? "",
-            zone: rule.zone ?? "WAN",
+            zone: (rule.zone ?? "WAN") as "WAN" | "LAN" | "ANY",
         } : {
             ip_src: "",
+            ip_dst: "",
             port: "",
             protocol: "ALL",
             action: "DROP",
@@ -97,6 +100,7 @@ export function AddRuleModal({rule, open: controlledOpen, onOpenChange}: AddRule
     function onSubmit(values: z.infer<typeof formSchema>) {
         const payload = {
             ip_src: !values.ip_src || values.ip_src.trim() === "" ? null : values.ip_src,
+            ip_dst: !values.ip_dst || values.ip_dst.trim() === "" ? null : values.ip_dst,
             port: values.port ? Number(values.port) : null,
             protocol: values.protocol === "ALL" ? null : values.protocol,
             action: values.action,
@@ -125,7 +129,7 @@ export function AddRuleModal({rule, open: controlledOpen, onOpenChange}: AddRule
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <FormField
                             control={form.control}
                             name="action"
@@ -168,21 +172,57 @@ export function AddRuleModal({rule, open: controlledOpen, onOpenChange}: AddRule
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name="zone"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Zone</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select zone"/>
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="WAN">WAN</SelectItem>
+                                            <SelectItem value="LAN">LAN</SelectItem>
+                                            <SelectItem value="ANY">ANY</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}
+                        />
                     </div>
 
-                    <FormField
-                        control={form.control}
-                        name="ip_src"
-                        render={({field}) => (
-                            <FormItem>
-                                <FormLabel>Source IP (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. 192.168.1.50 or empty for any" {...field} />
-                                </FormControl>
-                                <FormMessage/>
-                            </FormItem>
-                        )}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="ip_src"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Source IP (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g. 10.0.5.5 or CIDR" {...field} />
+                                    </FormControl>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="ip_dst"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Dest IP (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g. 10.0.3.5 or CIDR" {...field} />
+                                    </FormControl>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
                     <FormField
                         control={form.control}

@@ -9,6 +9,7 @@ from detectors.flood import FloodEngine
 from detectors.honeyport import HoneyportEngine
 from domain.models import PacketInfo
 from infrastructure.nftables_manager import NftablesManager
+from repository.base import AsyncDBWriter
 from service.firewall_actions import FirewallActions
 from service.packet_analyzer import PacketAnalyzer
 from service.rule_engine import RuleEngine
@@ -57,7 +58,6 @@ class PacketInterceptor:
                             -> DEFAULT ACCEPT
         """
 
-        #TODO verifica cu atentie logica de decizie
         raw_payload = packet.get_payload()
 
         packet_info = self.analyzer.analyze(raw_payload)
@@ -146,7 +146,7 @@ class PacketInterceptor:
             logger.info("[INTERCEPTOR] Stop interception and free kernel connection")
             self.nfqueue.unbind()
             self.is_running = False
-            self.actions.get_db_writer().stop()
+            AsyncDBWriter().stop()
             logger.info("[INTERCEPTOR] Database background worker stopped.")
 
             NftablesManager.cleanup()

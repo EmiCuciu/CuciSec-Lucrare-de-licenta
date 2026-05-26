@@ -11,6 +11,7 @@ class RuleCreate(BaseModel):
     Schema for ( POST /rules )
     """
     ip_src: Optional[str] = None
+    ip_dst: Optional[str] = None
     port: Optional[int] = None
     protocol: Optional[str] = None
     action: str
@@ -47,6 +48,7 @@ class RuleResponse(BaseModel):
     """
     id: int
     ip_src: Optional[str]
+    ip_dst: Optional[str]
     port: Optional[int]
     protocol: Optional[str]
     action: str
@@ -54,7 +56,6 @@ class RuleResponse(BaseModel):
     enabled: int
     zone: str
 
-    # ~~~ cool ~~~
     model_config = ConfigDict(from_attributes=True)
 
 class LogResponse(BaseModel):

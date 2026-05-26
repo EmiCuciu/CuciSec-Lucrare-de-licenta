@@ -124,7 +124,7 @@ table inet cucisec {
 ###########################################################################
     #####    allow already-established flows to pass without re-inspection
 
-    ct state established,related counter accept
+#    ct state established,related counter accept
 ###########################################################################
 
 

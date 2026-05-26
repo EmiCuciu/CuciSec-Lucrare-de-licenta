@@ -23,14 +23,21 @@ def init_db():
            (
                id          INTEGER PRIMARY KEY AUTOINCREMENT,
                ip_src      TEXT,
+               ip_dst      TEXT,
                port        INTEGER,
                protocol    TEXT,
                action      TEXT NOT NULL,
                description TEXT,
-               enabled INTEGER DEFAULT 1,
-               zone    TEXT    DEFAULT 'WAN'
+               enabled     INTEGER DEFAULT 1,
+               zone        TEXT    DEFAULT 'WAN'
            )'''
     )
+
+    # Migration: add ip_dst column if DB was created before this version
+    try:
+        cursor.execute("ALTER TABLE Rules ADD COLUMN ip_dst TEXT")
+    except Exception:
+        pass  # column already exists
 
     cursor.execute(
         '''CREATE TABLE IF NOT EXISTS Logs

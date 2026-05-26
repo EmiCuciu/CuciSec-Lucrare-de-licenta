@@ -1,6 +1,7 @@
 export interface Rule {
     id: number;
     ip_src: string | null;
+    ip_dst: string | null;
     port: number | null;
     protocol: string | null;
     action: string;

@@ -89,6 +89,6 @@ class DPIEngine:
         for pattern, label in self.signatures:
             if pattern.search(normalized):
                 logger.warning(f"[DPI ALERT] {packet_info.ip_src} | {label} | verdict=DROP+BAN")
-                return f"DPI HIT:  {label}  "
+                return f"DPI HIT: {label}"
 
         return None

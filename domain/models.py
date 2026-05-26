@@ -25,6 +25,7 @@ class RuleModel:
     zone: str = "WAN"
     id: Optional[int] = None
     ip_src: Optional[str] = None
+    ip_dst: Optional[str] = None
     port: Optional[int] = None
     protocol: Optional[str] = None
     description: Optional[str] = None

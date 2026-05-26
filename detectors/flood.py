@@ -36,10 +36,8 @@ class FloodEngine:
         count = len(window)
 
         if proto == "TCP":
-            threshold = Config.PER_PORT_TCP_THRESHOLDS.get(port, Config.MAX_TCP_NEW)
-            if count > threshold:
-                logger.critical(f"[FLOOD] {ip} TCP flood port {port} ({count} pkts/{Config.TIME_WINDOW}s)")
-                return f"Persistent TCP Flood on port {port}"
+            logger.critical(f"[FLOOD] {ip} TCP flood port {port} ({count} pkts/{Config.TIME_WINDOW}s)")
+            return f"Persistent TCP Flood on port {port}"
 
         elif proto == "UDP" and count > Config.MAX_UDP_NEW:
             logger.critical(f"[FLOOD] {ip} UDP flood ({count} pkts/{Config.TIME_WINDOW}s)")

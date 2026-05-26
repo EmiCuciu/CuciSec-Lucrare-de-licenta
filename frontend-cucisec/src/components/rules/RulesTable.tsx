@@ -82,8 +82,10 @@ export function RulesTable() {
                         <TableRow className="hover:bg-transparent">
                             <TableHead className="w-25"></TableHead>
                             <TableHead>Action</TableHead>
+                            <TableHead>Zone</TableHead>
                             <TableHead>Protocol</TableHead>
                             <TableHead>Source IP</TableHead>
+                            <TableHead>Dest IP</TableHead>
                             <TableHead>Port</TableHead>
                             <TableHead>Description</TableHead>
                             <TableHead className="text-right">Manage</TableHead>
@@ -92,7 +94,7 @@ export function RulesTable() {
                     <TableBody>
                         {rules.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                                <TableCell colSpan={9} className="text-center h-24 text-muted-foreground">
                                     No active rules. System is running on default policies.
                                 </TableCell>
                             </TableRow>
@@ -119,8 +121,18 @@ export function RulesTable() {
                                             {rule.action}
                                         </Badge>
                                     </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className={
+                                            rule.zone === "WAN" ? "border-orange-500 text-orange-500" :
+                                            rule.zone === "LAN" ? "border-blue-500 text-blue-500" :
+                                            "border-muted-foreground text-muted-foreground"
+                                        }>
+                                            {rule.zone || "WAN"}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell className="font-mono text-xs">{rule.protocol || "ANY"}</TableCell>
                                     <TableCell className="font-mono text-xs">{rule.ip_src || "ANY"}</TableCell>
+                                    <TableCell className="font-mono text-xs">{rule.ip_dst || "ANY"}</TableCell>
                                     <TableCell className="font-mono text-xs">{rule.port || "ANY"}</TableCell>
                                     <TableCell className="font-mono text-xs">{rule.description || "-"}</TableCell>
                                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>

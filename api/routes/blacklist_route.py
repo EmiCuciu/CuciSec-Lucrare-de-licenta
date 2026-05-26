@@ -5,7 +5,6 @@ from loguru import logger
 
 from api.dependencies import get_firewall_actions
 from api.schemas import BlacklistResponse, BlacklistCreate
-from infrastructure.nftables_manager import NftablesManager
 from repository.blacklist_repository import BlacklistRepository
 from service.firewall_actions import FirewallActions
 
@@ -48,8 +47,6 @@ def unban_ip(ip: str,
     :param firewall_actions: FirewallActions instance (injected)
     :return: unbanned prop
     """
-    blacklist_repo.delete(ip)
-    NftablesManager.unban_ip(ip)
     firewall_actions.unban_ip(ip)
     logger.debug(f"[BlacklistRoute] unbanned ip: {ip}")
     return {"unbanned": ip}

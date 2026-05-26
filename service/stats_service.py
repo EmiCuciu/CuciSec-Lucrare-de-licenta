@@ -18,9 +18,6 @@ class StatsService:
             "udp_flood_dropped": 0,
             "blacklist_dropped": 0,
             "honeyport_hits": 0,
-            "global_syn_flood_dropped": 0,
-            "global_udp_flood_dropped": 0,
-            "global_icmp_flood_dropped": 0,
         }
 
         try:

@@ -63,18 +63,11 @@ class FirewallActions:
 
     def unban_ip(self, ip_address: str):
         """
-        Unban IP
+        Unban IP: removes from in-memory cache, DB, and kernel set.
         :param ip_address: IP address to unban
         :return: None
         """
         self._banned_ips.discard(ip_address)
-        logger.info(f"[FirewallActions] Cache updated: {ip_address} removed")
-
-    @staticmethod
-    def get_db_writer():
-        """
-        Pass async writer for stop in Interceptor
-        :return: writer
-        """
-        from repository.base import AsyncDBWriter
-        return AsyncDBWriter()
+        self._blacklist_repo.delete(ip_address)
+        NftablesManager.unban_ip(ip_address)
+        logger.info(f"[FirewallActions] [UNBAN] {ip_address}")

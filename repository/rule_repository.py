@@ -22,14 +22,8 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                               SELECT id,
-                                      ip_src,
-                                      port,
-                                      protocol,
-                                      action,
-                                      description,
-                                      enabled,
-                                      zone
+                               SELECT id, ip_src, ip_dst, port, protocol,
+                                      action, description, enabled, zone
                                FROM Rules
                                ORDER BY id
                                ''')
@@ -37,11 +31,13 @@ class RuleRepository:
                     RuleModel(
                         id=row[0],
                         ip_src=row[1],
-                        port=row[2],
-                        protocol=row[3].upper() if row[3] else None,
-                        action=row[4].upper(),
-                        description=row[5],
-                        enabled=row[6]
+                        ip_dst=row[2],
+                        port=row[3],
+                        protocol=row[4].upper() if row[4] else None,
+                        action=row[5].upper(),
+                        description=row[6],
+                        enabled=row[7],
+                        zone=row[8]
                     )
                     for row in cursor.fetchall()
                 ]
@@ -60,14 +56,8 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                               SELECT id,
-                                      ip_src,
-                                      port,
-                                      protocol,
-                                      action,
-                                      description,
-                                      enabled,
-                                      zone
+                               SELECT id, ip_src, ip_dst, port, protocol,
+                                      action, description, enabled, zone
                                FROM Rules
                                WHERE enabled = 1
                                ORDER BY id
@@ -76,18 +66,19 @@ class RuleRepository:
                     RuleModel(
                         id=row[0],
                         ip_src=row[1],
-                        port=row[2],
-                        protocol=row[3].upper() if row[3] else None,
-                        action=row[4].upper(),
-                        description=row[5],
-                        enabled=row[6],
-                        zone=row[7]
+                        ip_dst=row[2],
+                        port=row[3],
+                        protocol=row[4].upper() if row[4] else None,
+                        action=row[5].upper(),
+                        description=row[6],
+                        enabled=row[7],
+                        zone=row[8]
                     )
                     for row in cursor.fetchall()
                 ]
 
         except sqlite3.Error as e:
-            logger.error(f"[RuleRepository] get_all error: {e}")
+            logger.error(f"[RuleRepository] get_enabled error: {e}")
             return []
 
     @staticmethod
@@ -101,9 +92,9 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO Rules (ip_src, port, protocol, action, description, enabled, zone) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (rule.ip_src, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone)
+                    "INSERT INTO Rules (ip_src, ip_dst, port, protocol, action, description, enabled, zone) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone)
                 )
                 conn.commit()
                 return cursor.lastrowid
@@ -140,8 +131,8 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "UPDATE Rules SET ip_src=?, port=?, protocol=?, action=?, description=?, enabled=?, zone=? WHERE id=?",
-                    (rule.ip_src, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone, rule_id)
+                    "UPDATE Rules SET ip_src=?, ip_dst=?, port=?, protocol=?, action=?, description=?, enabled=?, zone=? WHERE id=?",
+                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone, rule_id)
                 )
                 conn.commit()
                 return cursor.rowcount > 0

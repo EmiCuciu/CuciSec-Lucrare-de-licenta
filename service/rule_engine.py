@@ -6,6 +6,7 @@ from loguru import logger
 
 from domain.models import RuleModel, PacketInfo
 from repository.rule_repository import RuleRepository
+from utils.config import Config
 
 
 class RuleEngine:
@@ -31,46 +32,74 @@ class RuleEngine:
         :return: None
         """
         self.load_rules()
-        logger.info("[RuleEngine] rules reloaded into RAM")
 
     def evaluate(self, packet_info: PacketInfo) -> Tuple[Optional[str], str]:
         """
-        Compares the current packet with in-memory rules
-        :param packet_info:
-        :return: Tuple (Action, Zone)
+        Compares the current packet with in-memory rules.
+        Rules are filtered by zone before matching: a rule with zone=WAN only
+        applies to WAN packets, zone=LAN only to LAN packets, zone=ANY to both.
+        :param packet_info: dissected packet metadata
+        :return: Tuple (Action, Zone) or (None, "") if no rule matched
         """
         logger.debug("[RuleEngine] - INSPECTING...")
 
         if not packet_info:
             return None, ""
 
+        packet_zone = RuleEngine._detect_zone(packet_info.ip_src)
+
         with self._lock:
             rules = self._rules
 
         for rule in rules:
+            zone = (rule.zone or "WAN").upper()
+            if zone != "ANY" and zone != packet_zone:
+                continue
 
-            ip_match = RuleEngine.is_ip_match(rule.ip_src, packet_info.ip_src)
+            if not RuleEngine.is_ip_match(rule.ip_src, packet_info.ip_src):
+                continue
+
+            if not RuleEngine.is_ip_match(rule.ip_dst, packet_info.ip_dst):
+                continue
 
             protocol_match = (
-                    rule.protocol is None or
-                    rule.protocol == packet_info.protocol
+                rule.protocol is None or
+                rule.protocol == packet_info.protocol
             )
+            if not protocol_match:
+                continue
 
             port_match = True
             if rule.port is not None:
                 port_match = (
-                        rule.port == packet_info.port_dst or
-                        rule.port == packet_info.port_src
+                    rule.port == packet_info.port_dst or
+                    rule.port == packet_info.port_src
                 )
+            if not port_match:
+                continue
 
-            if ip_match and protocol_match and port_match:
-                return rule.action, rule.zone or ""
+            logger.debug(f"[RuleEngine] Rule matched: id={rule.id} zone={zone} action={rule.action}")
+            return rule.action, rule.zone or ""
 
-        # if no rules matched
         return None, ""
 
     @staticmethod
-    def is_ip_match(rule_ip: str, packet_ip: str) -> bool:
+    def _detect_zone(ip_src: str) -> str:
+        """
+        Determines the zone of a packet based on its source IP.
+        Returns 'LAN' if the IP is in any configured LAN_SUBNETS, 'WAN' otherwise.
+        """
+        try:
+            addr = ipaddress.ip_address(ip_src)
+            for subnet_str in Config.LAN_SUBNETS:
+                if addr in ipaddress.ip_network(subnet_str, strict=False):
+                    return "LAN"
+        except ValueError:
+            pass
+        return "WAN"
+
+    @staticmethod
+    def is_ip_match(rule_ip: Optional[str], packet_ip: str) -> bool:
         """
         Checks if the rule ip matches the packet ip, supporting exact matches, wildcards, and CIDR notation.
         :param rule_ip: rule ip
@@ -80,14 +109,9 @@ class RuleEngine:
         if not rule_ip or rule_ip == "*":
             return True
         try:
-            # check if the rule IP is a network block (CIDR notation: 192.168.1.0/24)
             if '/' in rule_ip:
                 network = ipaddress.ip_network(rule_ip, strict=False)
-                ip_to_check = ipaddress.ip_address(packet_ip)
-                return ip_to_check in network
-
-            # match fallback
+                return ipaddress.ip_address(packet_ip) in network
             return rule_ip == packet_ip
         except ValueError:
-            # failsafe if string is malformed
             return rule_ip == packet_ip

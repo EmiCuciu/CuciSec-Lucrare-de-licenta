@@ -51,7 +51,6 @@ class LogRepository:
         """
         Get paginated logs
         """
-        # noinspection SqlConstantExpression
         query = "SELECT id, timestamp, ip_src, ip_dst, port_src, port_dst, protocol, action_taken, details FROM Logs WHERE 1=1"
         params = []
 
@@ -98,7 +97,7 @@ class LogRepository:
     @staticmethod
     def get_log_counts_by_minute() -> List[dict]:
         """
-        Returns log counts grouped by minute (last 30 mins)
+        Returns log counts grouped by minute
         used for real-time traffic chart
         :return: List of logs
         """

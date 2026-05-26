@@ -15,9 +15,6 @@ class Config:
         9999
     ]
 
-
-    MANAGEMENT_ALLOWED_CIDRS = ["127.0.0.1", "10.0.3.0/24", "10.0.2.0/24"]
-
     # Flood detector thresholds
     TIME_WINDOW = 12.0  # sliding window in seconds
     MAX_TCP_NEW = 200

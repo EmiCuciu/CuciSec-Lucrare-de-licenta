@@ -80,7 +80,7 @@ export function RulesTable() {
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-25">Status</TableHead>
+                            <TableHead className="w-25"></TableHead>
                             <TableHead>Action</TableHead>
                             <TableHead>Protocol</TableHead>
                             <TableHead>Source IP</TableHead>

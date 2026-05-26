@@ -75,6 +75,9 @@ class DPIEngine:
             return None
 
         payload = packet_info.payload
+
+        logger.debug(f"[DPI] Payload: {payload}")
+
         if not payload:
             logger.debug(f"[DPI] No payload from {packet_info.ip_src} -> port {port_dst}, skipping")
             return None

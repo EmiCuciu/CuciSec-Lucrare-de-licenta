@@ -39,14 +39,14 @@ def main():
 
     script_path = os.path.join(os.path.dirname(__file__), "scripts", "nftables_setup.sh")
     NftablesManager.setup(script_path)
-    logger.info("[BOOT] Kernel initialized (nftables flushed & created)")
+    logger.info("[BOOT] nftables flushed & created")
 
     blacklist_repo = BlacklistRepository()
     blk_ips = blacklist_repo.get_all_ips()
     ipv4_list = [ip for ip in blk_ips if ":" not in ip]
     ipv6_list = [ip for ip in blk_ips if ":" in ip]
     NftablesManager.sync_blacklist(ipv4_list, ipv6_list)
-    logger.info(f"[BOOT] Blacklist synced: {len(blk_ips)} IPS from DB to Kernel")
+    logger.info(f"[BOOT] Blacklist synced: {len(blk_ips)} IPs ")
 
     interceptor = PacketInterceptor(Config.QUEUE_NUM)
 

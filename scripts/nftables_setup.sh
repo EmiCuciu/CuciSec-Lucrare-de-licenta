@@ -6,7 +6,7 @@ flush ruleset
 
 table inet cucisec {
 
-# Trap ports — any connection attempt here is treated as hostile
+# Trap ports
   set honey_ports {
     type inet_service
     elements = { 21, 23, 25, 111, 445, 2323, 3389, 4444, 9999}
@@ -29,7 +29,7 @@ table inet cucisec {
 
 
 
-# input chain — protects the CuciSec host itself (SSH, management API)
+# input chain
   chain input {
     type filter hook input priority 0; policy accept;
 
@@ -39,7 +39,7 @@ table inet cucisec {
     ct state established,related accept
     ct state invalid drop
 
-    tcp dport 22 ct state { new } accept
+    tcp dport 22 ct state new accept
 
 
 # Management API accessible only from trusted subnets
@@ -103,7 +103,7 @@ table inet cucisec {
 # ── Default: all remaining traffic goes to userspace
 
     # Maybe not such an awesome idea
-    # counter queue num 1
+    counter queue num 1
   }
 
 }

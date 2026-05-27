@@ -8,11 +8,15 @@ class Config:
 
     # Honeyports
     HONEY_PORTS = [
-        23,
-        2323,
-        3389,
-        4444,
-        9999
+        21,  # FTP
+        23,  # Telnet
+        25,  # SMTP
+        111,  # Portmapper / RPC
+        445,  # SMB
+        2323,  # Telnet alternativ
+        3389,  # RDP
+        4444,  # Metasploit reverse shell
+        9999  # Backdoors / troiene comune
     ]
 
     # Flood detector thresholds

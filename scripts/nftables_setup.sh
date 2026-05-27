@@ -9,7 +9,7 @@ table inet cucisec {
 # Trap ports — any connection attempt here is treated as hostile
   set honey_ports {
     type inet_service
-    elements = { 23, 2323, 3389, 4444, 9999 }
+    elements = { 21, 23, 25, 111, 445, 2323, 3389, 4444, 9999}
   }
 
 
@@ -28,15 +28,6 @@ table inet cucisec {
   set flood_v6 { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
 
 
-# Per-destination flood tracking (defeats --rand-source attacks)
-  set flood_dst_syn_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
-  set flood_dst_syn_v6  { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
-  set flood_dst_udp_v4  { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
-  set flood_dst_udp_v6  { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
-  set flood_dst_icmp_v4 { type ipv4_addr; flags dynamic, timeout; timeout 1m; }
-  set flood_dst_icmp_v6 { type ipv6_addr; flags dynamic, timeout; timeout 1m; }
-
-
 
 # input chain — protects the CuciSec host itself (SSH, management API)
   chain input {
@@ -44,13 +35,15 @@ table inet cucisec {
 
 
     iif "lo"     accept
-    tcp dport 22 ct state { new, established, related } accept
+
     ct state established,related accept
     ct state invalid drop
 
+    tcp dport 22 ct state { new } accept
+
 
 # Management API accessible only from trusted subnets
-    ip saddr @whitelist_v4 tcp dport 8000 ct state { new, established, related } accept
+    ip saddr @whitelist_v4 tcp dport 8000 ct state new accept
     tcp dport 8000 counter drop comment "mgmt_api_block"
   }
 
@@ -82,12 +75,12 @@ table inet cucisec {
 
 
 # ── Per-destination rate limits — defeat fixed-source floods toward a single host
-    tcp flags syn ip  daddr != 0.0.0.0 update @flood_dst_syn_v4  { ip  daddr limit rate over 30/second burst  50 packets } counter drop comment "dst_syn_flood"
-    tcp flags syn ip6 daddr != ::      update @flood_dst_syn_v6  { ip6 daddr limit rate over 30/second burst  50 packets } counter drop comment "dst_syn_flood"
-    ip  protocol udp ip  daddr != 0.0.0.0 update @flood_dst_udp_v4  { ip  daddr limit rate over  80/second burst 150 packets } counter drop comment "dst_udp_flood"
-    ip6 nexthdr  udp ip6 daddr != ::      update @flood_dst_udp_v6  { ip6 daddr limit rate over  80/second burst 150 packets } counter drop comment "dst_udp_flood"
-    ip  protocol icmp   ip  daddr != 0.0.0.0 update @flood_dst_icmp_v4 { ip  daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
-    ip6 nexthdr  icmpv6 ip6 daddr != ::      update @flood_dst_icmp_v6 { ip6 daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
+    tcp flags syn ip  daddr != 0.0.0.0 update @flood_v4 { ip  daddr limit rate over 30/second burst  50 packets } counter drop comment "dst_syn_flood"
+    tcp flags syn ip6 daddr != ::      update @flood_v6 { ip6 daddr limit rate over 30/second burst  50 packets } counter drop comment "dst_syn_flood"
+    ip  protocol udp ip  daddr != 0.0.0.0 update @flood_v4  { ip  daddr limit rate over  80/second burst 150 packets } counter drop comment "dst_udp_flood"
+    ip6 nexthdr  udp ip6 daddr != ::      update @flood_v6  { ip6 daddr limit rate over  80/second burst 150 packets } counter drop comment "dst_udp_flood"
+    ip  protocol icmp   ip  daddr != 0.0.0.0 update @flood_v4 { ip  daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
+    ip6 nexthdr  icmpv6 ip6 daddr != ::      update @flood_v6 { ip6 daddr limit rate over 8/second burst 15 packets } counter drop comment "dst_icmp_flood"
 
 
 # ── HTTP — forwarded to userspace for DPI inspection
@@ -95,12 +88,12 @@ table inet cucisec {
 
 
 # ── Per-source rate limits — detect sustained single-source floods
-    ip  protocol icmp   limit rate over  5/second burst  10 packets counter drop comment "icmp_flood"
-    ip6 nexthdr  icmpv6 limit rate over  5/second burst  10 packets counter drop comment "icmp_flood"
-    tcp flags syn ip  saddr != 0.0.0.0 update @flood_v4 { ip  saddr limit rate over  20/second burst  40 packets } counter drop comment "tcp_syn_flood"
-    tcp flags syn ip6 saddr != ::      update @flood_v6 { ip6 saddr limit rate over  20/second burst  40 packets } counter drop comment "tcp_syn_flood"
-    ip  protocol udp ip  saddr != 0.0.0.0 update @flood_v4 { ip  saddr limit rate over 200/second burst 250 packets } counter drop comment "udp_flood"
-    ip6 nexthdr  udp ip6 saddr != ::      update @flood_v6 { ip6 saddr limit rate over 200/second burst 250 packets } counter drop comment "udp_flood"
+    ip  protocol icmp   ip  saddr != 0.0.0.0 update @flood_v4 { ip  saddr limit rate over  5/second  burst 10 packets } counter drop comment "icmp_flood"
+    ip6 nexthdr  icmpv6 ip6 saddr != ::      update @flood_v6 { ip6 saddr limit rate over  10/second burst 40 packets } counter drop comment "icmp_flood"
+    tcp flags syn ip  saddr != 0.0.0.0 update @flood_v4 { ip  saddr limit rate over  20/second burst 40 packets } counter drop comment "tcp_syn_flood"
+    tcp flags syn ip6 saddr != ::      update @flood_v6 { ip6 saddr limit rate over  20/second burst 40 packets } counter drop comment "tcp_syn_flood"
+    ip  protocol udp ip  saddr != 0.0.0.0 update @flood_v4 { ip  saddr limit rate over 50/second burst 100 packets } counter drop comment "udp_flood"
+    ip6 nexthdr  udp ip6 saddr != ::      update @flood_v6 { ip6 saddr limit rate over 50/second burst 100 packets } counter drop comment "udp_flood"
 
 
 # ── Honeyports — forwarded to userspace for ban decision
@@ -108,7 +101,9 @@ table inet cucisec {
 
 
 # ── Default: all remaining traffic goes to userspace
-    counter queue num 1
+
+    # Maybe not such an awesome idea
+    # counter queue num 1
   }
 
 }

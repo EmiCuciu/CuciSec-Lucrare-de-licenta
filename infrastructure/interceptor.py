@@ -60,6 +60,7 @@ class PacketInterceptor:
 
         raw_payload = packet.get_payload()
 
+        # Scapy - analyze packet payload
         packet_info = self.analyzer.analyze(raw_payload)
 
         if not packet_info:
@@ -72,7 +73,7 @@ class PacketInterceptor:
                     f"{packet_info.ip_src}:{packet_info.port_src} -> "
                     f"{packet_info.ip_dst}:{packet_info.port_dst}")
 
-        # Rule Engine — administrator intent takes priority over automated detection.
+        # Rule Engine
         decision, zone = self.rule_engine.evaluate(packet_info)
         if decision == "DROP":
             label = f"RULE ENGINE {zone.replace(' ', '_').upper()}" if zone else "RULE ENGINE"
@@ -85,7 +86,7 @@ class PacketInterceptor:
             self.actions.accept_packet(packet, packet_info, label)
             return
 
-        # Flood Engine — per-source DoS detection (global + per-dst handled by nftables kernel-side)
+        # Flood Engine
         flood_alert = self.flood.inspect(packet_info)
         if flood_alert:
             logger.warning(f"[INTERCEPTOR] DROP & BAN: FLOOD - ip_source: {packet_info.ip_src}:{packet_info.port_src}")

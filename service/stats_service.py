@@ -46,12 +46,16 @@ class StatsService:
 
                 if comment in ("icmp_flood", "global_icmp_flood", "dst_icmp_flood"):
                     counters["icmp_flood_dropped"] += packets
+
                 elif comment in ("tcp_syn_flood", "global_syn_flood", "dst_syn_flood"):
                     counters["tcp_syn_flood_dropped"] += packets
+
                 elif comment in ("udp_flood", "global_udp_flood", "dst_udp_flood"):
                     counters["udp_flood_dropped"] += packets
+
                 elif comment == "blacklist_drop":
                     counters["blacklist_dropped"] += packets
+
                 elif comment == "honeyport_drop":
                     counters["honeyport_hits"] += packets
 

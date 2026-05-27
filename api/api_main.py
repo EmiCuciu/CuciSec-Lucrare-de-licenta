@@ -36,6 +36,8 @@ def create_app(rule_engine=None, firewall_actions=None) -> FastAPI:
     # store instances to app.state -> Dep Injection
     app.state.rule_engine = rule_engine
     app.state.firewall_actions = firewall_actions
+
+    # Kernel Counters
     app.state.kernel_baseline = StatsRepository.get_kernel_counters()
 
     # add routes

@@ -6,6 +6,26 @@ from loguru import logger
 from database.setup_db import DB_NAME
 from domain.models import RuleModel
 
+_SELECT = """
+    SELECT id, ip_src, ip_dst, port, protocol,
+           action, description, enabled, zone
+    FROM Rules
+"""
+
+
+def _row_to_rule(row) -> RuleModel:
+    return RuleModel(
+        id=row[0],
+        ip_src=row[1],
+        ip_dst=row[2],
+        port=row[3],
+        protocol=row[4].upper() if row[4] else None,
+        action=row[5].upper(),
+        description=row[6],
+        enabled=row[7],
+        zone=row[8],
+    )
+
 
 class RuleRepository:
     """
@@ -15,33 +35,14 @@ class RuleRepository:
     @staticmethod
     def get_all() -> List[RuleModel]:
         """
-        Return rules from table
+        Return all rules from table
         :return: List of rules
         """
         try:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
-                cursor.execute('''
-                               SELECT id, ip_src, ip_dst, port, protocol,
-                                      action, description, enabled, zone
-                               FROM Rules
-                               ORDER BY id
-                               ''')
-                return [
-                    RuleModel(
-                        id=row[0],
-                        ip_src=row[1],
-                        ip_dst=row[2],
-                        port=row[3],
-                        protocol=row[4].upper() if row[4] else None,
-                        action=row[5].upper(),
-                        description=row[6],
-                        enabled=row[7],
-                        zone=row[8]
-                    )
-                    for row in cursor.fetchall()
-                ]
-
+                cursor.execute(_SELECT + "ORDER BY id")
+                return [_row_to_rule(row) for row in cursor.fetchall()]
         except sqlite3.Error as e:
             logger.error(f"[RuleRepository] get_all error: {e}")
             return []
@@ -49,34 +50,14 @@ class RuleRepository:
     @staticmethod
     def get_enabled() -> List[RuleModel]:
         """
-        Take from db Rule table only enabled rules, for boot -> kernel and hot-reload
+        Return only enabled rules, used for boot and hot-reload
         :return: List of enabled rules
         """
         try:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
-                cursor.execute('''
-                               SELECT id, ip_src, ip_dst, port, protocol,
-                                      action, description, enabled, zone
-                               FROM Rules
-                               WHERE enabled = 1
-                               ORDER BY id
-                               ''')
-                return [
-                    RuleModel(
-                        id=row[0],
-                        ip_src=row[1],
-                        ip_dst=row[2],
-                        port=row[3],
-                        protocol=row[4].upper() if row[4] else None,
-                        action=row[5].upper(),
-                        description=row[6],
-                        enabled=row[7],
-                        zone=row[8]
-                    )
-                    for row in cursor.fetchall()
-                ]
-
+                cursor.execute(_SELECT + "WHERE enabled = 1 ORDER BY id")
+                return [_row_to_rule(row) for row in cursor.fetchall()]
         except sqlite3.Error as e:
             logger.error(f"[RuleRepository] get_enabled error: {e}")
             return []
@@ -84,7 +65,7 @@ class RuleRepository:
     @staticmethod
     def insert(rule: RuleModel) -> Optional[int]:
         """
-        Insert into rule table
+        Insert a rule into the table
         :param rule: rule to be inserted
         :return: rule.id
         """
@@ -94,7 +75,8 @@ class RuleRepository:
                 cursor.execute(
                     "INSERT INTO Rules (ip_src, ip_dst, port, protocol, action, description, enabled, zone) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone)
+                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol,
+                     rule.action, rule.description, rule.enabled, rule.zone)
                 )
                 conn.commit()
                 return cursor.lastrowid
@@ -106,7 +88,7 @@ class RuleRepository:
     def delete(rule_id: int) -> bool:
         """
         Delete a rule by id
-        :param rule_id:
+        :param rule_id: id of rule to delete
         :return: boolean
         """
         try:
@@ -131,8 +113,10 @@ class RuleRepository:
             with sqlite3.connect(DB_NAME) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "UPDATE Rules SET ip_src=?, ip_dst=?, port=?, protocol=?, action=?, description=?, enabled=?, zone=? WHERE id=?",
-                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol, rule.action, rule.description, rule.enabled, rule.zone, rule_id)
+                    "UPDATE Rules SET ip_src=?, ip_dst=?, port=?, protocol=?, "
+                    "action=?, description=?, enabled=?, zone=? WHERE id=?",
+                    (rule.ip_src, rule.ip_dst, rule.port, rule.protocol,
+                     rule.action, rule.description, rule.enabled, rule.zone, rule_id)
                 )
                 conn.commit()
                 return cursor.rowcount > 0
@@ -144,8 +128,8 @@ class RuleRepository:
     def toggle(rule_id: int, enabled: int) -> bool:
         """
         Enable or disable a rule
-        :param rule_id: rule_id to toggle
-        :param enabled: 1/0
+        :param rule_id: rule to toggle
+        :param enabled: 1 or 0
         :return: boolean
         """
         try:

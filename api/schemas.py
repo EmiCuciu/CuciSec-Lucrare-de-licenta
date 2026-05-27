@@ -4,8 +4,6 @@ from typing import Optional, List
 from pydantic import BaseModel, field_validator, ConfigDict
 
 
-# Very cool ~~~ pydantic ~~~
-
 class RuleCreate(BaseModel):
     """
     Schema for ( POST /rules )

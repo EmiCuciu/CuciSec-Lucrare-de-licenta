@@ -27,7 +27,7 @@ class LogRepository:
         """
         sql = """
               INSERT INTO Logs (ip_src, ip_dst, port_src, port_dst, protocol, action_taken, details)
-              VALUES (?, ?, ?, ?, ?, ?, ?) \
+              VALUES (?, ?, ?, ?, ?, ?, ?)
               """
 
         params = (

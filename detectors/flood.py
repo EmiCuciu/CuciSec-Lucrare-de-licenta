@@ -35,7 +35,7 @@ class FloodEngine:
         self._history[key] = window
         count = len(window)
 
-        if proto == "TCP":
+        if proto == "TCP" and count > Config.MAX_TCP_NEW:
             logger.critical(f"[FLOOD] {ip} TCP flood port {port} ({count} pkts/{Config.TIME_WINDOW}s)")
             return f"Persistent TCP Flood on port {port}"
 

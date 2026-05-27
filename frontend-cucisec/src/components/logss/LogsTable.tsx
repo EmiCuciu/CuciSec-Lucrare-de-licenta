@@ -13,6 +13,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const PAGE_SIZE = 20;
 
+const ICMP_TYPES: Record<number, string> = {
+    // ICMPv4
+    0: "Echo Reply",
+    3: "Dest Unreachable",
+    8: "Echo Request",
+    11: "Time Exceeded",
+    // ICMPv6
+    128: "Echo Request",
+    129: "Echo Reply",
+    135: "Neighbor Solicitation",
+    136: "Neighbor Advertisement",
+};
+
+function icmpTypeName(type: number): string {
+    return ICMP_TYPES[type] ?? `Type ${type}`;
+}
+
+function endpoint(ip: string, port: number, protocol: string): string {
+    if (protocol === "ICMP" || protocol === "ICMPv6") return ip;
+    return port ? `${ip}:${port}` : ip;
+}
+
 export function LogsTable() {
     const [filterProtocol, setFilterProtocol] = useState("all");
     const [filterAction, setFilterAction] = useState("all");
@@ -37,7 +59,7 @@ export function LogsTable() {
         if (filterProtocol !== "all" && log.protocol !== filterProtocol) return false;
         if (filterAction === "ACCEPT" && !log.action_taken.includes("ACCEPT")) return false;
         if (filterAction === "DROP" && !log.action_taken.includes("DROP")) return false;
-        return !(filterIp && !log.ip_src.includes(filterIp));
+        return !(filterIp && !log.ip_src.includes(filterIp) && !log.ip_dst.includes(filterIp));
     });
 
     const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -71,7 +93,7 @@ export function LogsTable() {
             {/* Filters */}
             <div className="flex gap-3 flex-wrap">
                 <Select value={filterProtocol} onValueChange={v => { setFilterProtocol(v); setPage(0); }}>
-                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All protocols</SelectItem>
                         <SelectItem value="TCP">TCP</SelectItem>
@@ -80,7 +102,7 @@ export function LogsTable() {
                     </SelectContent>
                 </Select>
                 <Select value={filterAction} onValueChange={v => { setFilterAction(v); setPage(0); }}>
-                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All actions</SelectItem>
                         <SelectItem value="ACCEPT">ACCEPT</SelectItem>
@@ -102,9 +124,9 @@ export function LogsTable() {
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
                             <TableHead>Time</TableHead>
-                            <TableHead>Source IP</TableHead>
-                            <TableHead>Dst Port</TableHead>
                             <TableHead>Protocol</TableHead>
+                            <TableHead>Source</TableHead>
+                            <TableHead>Destination</TableHead>
                             <TableHead>Action</TableHead>
                             <TableHead>Details</TableHead>
                             <TableHead className="text-right">Ban</TableHead>
@@ -119,27 +141,55 @@ export function LogsTable() {
                             </TableRow>
                         ) : paged.map(log => {
                             const isDrop = log.action_taken.startsWith("DROP");
+                            const isIcmp = log.protocol === "ICMP" || log.protocol === "ICMPv6";
                             return (
                                 <TableRow key={log.id} className={isDrop ? "bg-destructive/5" : "bg-success/5"}>
-                                    <TableCell className="font-mono text-xs text-muted-foreground">
+                                    <TableCell
+                                        className="font-mono text-sm text-muted-foreground whitespace-nowrap"
+                                        title={log.timestamp}
+                                    >
                                         {new Date(log.timestamp).toLocaleTimeString()}
                                     </TableCell>
-                                    <TableCell className="font-mono text-xs">{log.ip_src}</TableCell>
-                                    <TableCell className="font-mono text-xs">{log.port_dst}</TableCell>
-                                    <TableCell className="font-mono text-xs">{log.protocol}</TableCell>
                                     <TableCell>
-                                        <Badge variant={isDrop ? "destructive" : "default"}
-                                               className={!isDrop ? "bg-success hover:bg-success/80" : ""}>
+                                        <Badge variant="outline" className="font-mono text-xs">
+                                            {log.protocol}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="font-mono text-sm">
+                                        {endpoint(log.ip_src, log.port_src, log.protocol)}
+                                    </TableCell>
+                                    <TableCell className="font-mono text-sm">
+                                        {isIcmp ? (
+                                            <span>
+                                                {log.ip_dst}{" "}
+                                                <span className="text-xs text-muted-foreground">
+                                                    ({icmpTypeName(log.port_dst)})
+                                                </span>
+                                            </span>
+                                        ) : (
+                                            endpoint(log.ip_dst, log.port_dst, log.protocol)
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={isDrop ? "destructive" : "default"}
+                                            className={!isDrop ? "bg-success hover:bg-success/80" : ""}
+                                        >
                                             {isDrop ? "DROP" : "ACCEPT"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground max-w-48 truncate">
+                                    <TableCell
+                                        className="text-sm text-muted-foreground max-w-56 truncate"
+                                        title={log.details}
+                                    >
                                         {log.details || "—"}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon"
-                                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => banMutation.mutate({ ip: log.ip_src })}>
+                                        <Button
+                                            variant="ghost" size="icon"
+                                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => banMutation.mutate({ ip: log.ip_src })}
+                                        >
                                             <Ban className="h-4 w-4" />
                                         </Button>
                                     </TableCell>

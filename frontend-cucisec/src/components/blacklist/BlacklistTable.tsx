@@ -62,9 +62,9 @@ export function BlacklistTable() {
                         </TableRow>
                     ) : list.map(entry => (
                         <TableRow key={entry.id}>
-                            <TableCell className="font-mono text-xs">{entry.ip}</TableCell>
+                            <TableCell className="font-mono text-sm">{entry.ip}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">{entry.reason}</TableCell>
-                            <TableCell className="font-mono text-xs text-muted-foreground">{entry.timestamp}</TableCell>
+                            <TableCell className="font-mono text-sm text-muted-foreground">{entry.timestamp}</TableCell>
                             <TableCell className="text-right">
                                 <Button
                                     variant="ghost"

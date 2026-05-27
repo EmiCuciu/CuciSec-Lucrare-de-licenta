@@ -127,11 +127,11 @@ export function RulesTable() {
                                             {rule.zone || "WAN"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="font-mono text-xs">{rule.protocol || "ANY"}</TableCell>
-                                    <TableCell className="font-mono text-xs">{rule.ip_src || "ANY"}</TableCell>
-                                    <TableCell className="font-mono text-xs">{rule.ip_dst || "ANY"}</TableCell>
-                                    <TableCell className="font-mono text-xs">{rule.port || "ANY"}</TableCell>
-                                    <TableCell className="font-mono text-xs">{rule.description || "-"}</TableCell>
+                                    <TableCell className="font-mono text-sm">{rule.protocol || "ANY"}</TableCell>
+                                    <TableCell className="font-mono text-sm">{rule.ip_src || "ANY"}</TableCell>
+                                    <TableCell className="font-mono text-sm">{rule.ip_dst || "ANY"}</TableCell>
+                                    <TableCell className="font-mono text-sm">{rule.port || "ANY"}</TableCell>
+                                    <TableCell className="font-mono text-sm">{rule.description || "-"}</TableCell>
                                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                         <Button
                                             variant="ghost" size="icon"

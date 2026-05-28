@@ -8,6 +8,9 @@ from domain.models import RuleModel, PacketInfo
 from repository.rule_repository import RuleRepository
 from utils.config import Config
 
+#TODO:  ar trebui sa fac sa pot adauga reguli dinamic, din userspace in kernelspace,prin scripturi predefinite  CUM ESTE ASTA:
+#             |
+#               cmd = ["sudo", "nft", "add", "rule", "inet", "cucisec", set_name, f"{{ {ip_address} }}"]
 
 class RuleEngine:
     def __init__(self, rule_repo: RuleRepository = None):

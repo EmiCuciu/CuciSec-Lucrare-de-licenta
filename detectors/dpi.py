@@ -18,10 +18,11 @@ class DPIEngine:
     _SIGNATURES: List[Tuple[re.Pattern, str]] = [
 
         # SQL Injection
-        (re.compile(r"union\s+select",               re.IGNORECASE), "SQLi: UNION SELECT"),
+        (re.compile(r"union\s+(all\s+)?select",      re.IGNORECASE), "SQLi: UNION SELECT"),
         (re.compile(r"drop\s+table",                 re.IGNORECASE), "SQLi: DROP TABLE"),
         (re.compile(r"'\s*or\s*'1'\s*=\s*'1",        re.IGNORECASE), "SQLi: tautology '1'='1'"),
         (re.compile(r"\bor\b\s+[\d'\"(].*[=<>]",     re.IGNORECASE), "SQLi: OR condition"),
+        (re.compile(r"exec\s*\(\s*char\s*\(",        re.IGNORECASE), "SQLi: obfuscated exec char"),
 
         # Cross-Site Scripting
         (re.compile(r"<script[^>]*>",                re.IGNORECASE), "XSS: <script> tag"),
@@ -29,16 +30,18 @@ class DPIEngine:
         (re.compile(r"\bon\w+\s*=",                  re.IGNORECASE), "XSS: event handler attribute"),
 
         # Command Injection
-        (re.compile(r";\s*(cat|ls|whoami|id|wget|curl|bash|sh)\b", re.IGNORECASE), "Command Injection: semicolon"),
-        (re.compile(r"\|\s*(cat|ls|whoami|id|wget|curl)\b",        re.IGNORECASE), "Command Injection: pipe"),
+        (re.compile(r";\s*(cat|ls|whoami|id|wget|curl|bash|sh|tail|head|grep)\b", re.IGNORECASE), "Command Injection: semicolon"),
+        (re.compile(r"\|\s*(cat|ls|whoami|id|wget|curl|bash|sh)\b",        re.IGNORECASE), "Command Injection: pipe"),
+        (re.compile(r"`.*`",                         re.IGNORECASE), "Command Injection: backticks"),
 
         # Path Traversal
-        (re.compile(r"(\.\./){2,}",                  re.IGNORECASE), "Path Traversal: ../../"),
-        (re.compile(r"/etc/passwd",                  re.IGNORECASE), "Sensitive Path: /etc/passwd"),
+        (re.compile(r"(\.\.[/\\])+",                 re.IGNORECASE), "Path Traversal: ../"),
+        (re.compile(r"/etc/(passwd|shadow|group|issue)", re.IGNORECASE), "Sensitive Path: /etc/"),
+        (re.compile(r"boot\.ini|win\.ini",           re.IGNORECASE), "Sensitive Path: Windows"),
 
         # Remote Code Execution
         (re.compile(r"\$\{jndi:(ldap|rmi|dns)://",  re.IGNORECASE), "Log4Shell RCE"),
-        (re.compile(r"(system|exec|passthru|shell_exec)\s*\(", re.IGNORECASE), "PHP RCE function"),
+        (re.compile(r"(system|exec|passthru|shell_exec|eval)\s*\(", re.IGNORECASE), "Code execution function"),
         (re.compile(r"cmd\.exe",                     re.IGNORECASE), "Windows RCE: cmd.exe"),
         (re.compile(r"powershell\s+-",               re.IGNORECASE), "Windows RCE: PowerShell"),
 
@@ -46,7 +49,7 @@ class DPIEngine:
         (re.compile(r"(localhost|127\.0\.0\.1|169\.254\.169\.254)", re.IGNORECASE), "SSRF: internal address"),
 
         # Scanner / Enumeration Fingerprinting
-        (re.compile(r"User-Agent:\s*.*(sqlmap|nikto|masscan|nuclei|zgrab|nmap)", re.IGNORECASE), "Scanner User-Agent"),
+        (re.compile(r"User-Agent:\s*.*(sqlmap|nikto|masscan|nuclei|zgrab|nmap|gobuster|dirb)", re.IGNORECASE), "Scanner User-Agent"),
         (re.compile(r"Nmap\s+scan\s+report",         re.IGNORECASE), "Nmap scan output"),
     ]
 

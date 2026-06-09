@@ -38,9 +38,12 @@ class PacketAnalyzer:
 
             else:
                 return None
+            
+            logger.debug(f"[PacketAnalyzer] Scapy packet summary: {packet.summary()}")
+            # packet.show()
 
         except Exception as e:
-            logger.error(f"[PacketAnalyzer] Error: {e}")
+            logger.error(f"[PacketAnalyzer] Error parsing IP layer: {e}")
             return None
 
 
@@ -70,24 +73,24 @@ class PacketAnalyzer:
             packet_info.port_src = packet[ICMP].code
             packet_info.port_dst = packet[ICMP].type
 
-        elif ip_layer == IPv6 and packet[IPv6].nh == 58:
-            # Protocol 58 in IPv6 means ICMPv6
-            # All ICMPv6 messages share the same header layout: type (byte 0), code (byte 1)
+        elif ip_layer == IPv6 and packet[IPv6].nh == 58: # ICMPv6
             packet_info.protocol = "ICMPv6"
             raw_icmpv6 = bytes(packet[IPv6].payload)
             if len(raw_icmpv6) >= 2:
                 packet_info.port_dst = raw_icmpv6[0]  # ICMPv6 type
                 packet_info.port_src = raw_icmpv6[1]  # ICMPv6 code
 
-
         # Extract the payload for DPI  ( Layer 7 )
         if packet.haslayer(Raw):
-            raw_bytes = packet[Raw].load
-            packet_info.payload = raw_bytes.decode('utf-8', errors='ignore')
+            logger.debug("[PacketAnalyzer] Packet has Raw layer.")
+            try:
+                payload_bytes = packet[Raw].load
+                packet_info.payload = payload_bytes.decode('utf-8', errors='ignore')
+                logger.debug(f"[PacketAnalyzer] Extracted payload: {packet_info.payload[:100]}...")
+            except Exception as e:
+                logger.warning(f"Could not decode payload: {e}")
         else:
-            if packet.haslayer(TCP):
-                raw_packet_bytes = bytes(packet[TCP].payload)
-                if raw_packet_bytes:
-                    packet_info.payload = raw_packet_bytes.decode('utf-8', errors='ignore')
+            logger.debug("[PacketAnalyzer] Packet does NOT have Raw layer.")
+
 
         return packet_info

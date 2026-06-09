@@ -126,7 +126,3 @@ API docs: `http://localhost:8000/docs`
 | `/api/blacklist` | GET / POST | IP-uri blocate / ban manual |
 | `/api/blacklist/{ip}` | DELETE | Unban IP |
 | `/api/stats` | GET | Statistici DB + counteri nftables |
-
----
-
-Diagrame detaliate de arhitectură și testare în [`DIAGRAMS.md`](DIAGRAMS.md).

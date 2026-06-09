@@ -58,8 +58,8 @@ def main():
         daemon=True
     )
     api_thread.start()
-    logger.info("[BOOT] FastAPI running on http://0.0.0.0:8000")
-    logger.info("[BOOT] API docs: http://0.0.0.0:8000/docs")
+    logger.info("[BOOT] FastAPI running on http://localhost:8080")
+    logger.info("[BOOT] API docs: http://localhost:8080/docs")
 
     try:
         interceptor.start_interceptor()

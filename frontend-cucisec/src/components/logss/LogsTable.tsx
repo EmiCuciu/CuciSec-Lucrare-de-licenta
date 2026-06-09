@@ -42,7 +42,7 @@ export function LogsTable() {
     const [page, setPage] = useState(0);
 
     const queryClient = useQueryClient();
-    const { data: logs = [], isLoading, isError } = useLogs(200);
+    const { data: logs = [], isLoading, isError } = useLogs(500);
 
     const banMutation = useMutation({
         mutationFn: ({ ip }: { ip: string }) => api.banIp(ip, "Manual Ban from Logs"),

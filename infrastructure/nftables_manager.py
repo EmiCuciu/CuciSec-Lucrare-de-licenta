@@ -46,7 +46,7 @@ class NftablesManager:
 
         try:
             subprocess.run(cmd, check=True, capture_output=True)
-            logger.info(f"[NftablesManager] IP: {ip_address} added into {set_name}")
+            logger.info(f"[NftablesManager] IP: {ip_address} added into blacklist")
 
         except subprocess.CalledProcessError as e:
             logger.error(f"[NftablesManager] Error inserting into Blacklist table (Kernel / nftables): {e.stderr.decode()}")
@@ -63,7 +63,7 @@ class NftablesManager:
                set_name, f"{{ {ip_address} }}"]
         try:
             subprocess.run(cmd, check=True, capture_output=True)
-            logger.info(f"[NftablesManager] {ip_address} removed from {set_name}")
+            logger.info(f"[NftablesManager] {ip_address} removed from blacklist")
 
         except subprocess.CalledProcessError as e:
             logger.warning(f"[NftablesManager] unban_ip: {e.stderr.decode()}")

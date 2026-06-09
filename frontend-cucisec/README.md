@@ -27,4 +27,4 @@ pnpm build      # dist/ servit automat de FastAPI
 | Blacklist | BlacklistTable + AddBanModal | Management IP-uri blocate |
 | Logs | LogsTable | Loguri paginate cu filtre |
 
-Documentație completă și diagrame de arhitectură în [`../README.md`](../README.md) și [`../DIAGRAMS.md`](../DIAGRAMS.md).
+Documentație completă și diagrame de arhitectură în [`../README.md`](../README.md) și [`../DIAGRAMS.md`](../zzz_bune/DIAGRAMS.md).
